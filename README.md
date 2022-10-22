@@ -8,6 +8,7 @@ maintain its strong foothold in the local market due to:
 
   ▪ High churn rate amongst customers leading to a revenue decline of ~500k USD 
 every month. 
+  
   ▪ The decline in overall customer base (high churn rate combined with low acquisition 
 rate), leading to a decline in total market share. 
 
