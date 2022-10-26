@@ -22,12 +22,13 @@ str(NotChurned)
 
 ```{r, echo=T, results=T}
 library(ggplot2)
-ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="green") + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000)
+ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red") + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000)
 ```
 
 
 
 ```{r, echo=T, results=T}
 library(ggplot2)
-ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="red") + ggtitle("Credit Rating for Not Churned Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000)
+ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="green") + ggtitle("Credit Rating for Not Churned Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000)
 ```
+
