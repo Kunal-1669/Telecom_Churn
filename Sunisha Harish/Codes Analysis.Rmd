@@ -17,6 +17,7 @@ output:
 
 
 ```{r,results=T}
+library(ezids)
 #Creating a dataframe
 Telecom_Data=data.frame(read.csv("Telecom Data.csv"))
 str(Telecom_Data)
@@ -43,10 +44,36 @@ Retained <- subset(Telecom_Data, Churn=="No")
 
 library(ggplot2)
 
-ggplot(Churned, aes(x=MonthsInService, fill=Churn)) + geom_histogram(position='identity',alpha=0.6,color='black',fill='aquamarine3')+xlab("Months in Service")+ylab("Churn Count")+ggtitle("Service Months Distribution for Churned customers")
+ggplot(Churned, aes(x=MonthsInService, fill=Churn)) + geom_histogram(position='identity',alpha=0.6,color='aquamarine4',fill='aquamarine3')+xlab("Service period for churned customers (In Months) ")+ylab("Frequency") + theme_classic()
+#+ggtitle("Service Months Distribution for Churned customers")
+
+Mean_1=mean(Churned$MonthsInService)
+Mean_1
+
+Median_1=median(Churned$MonthsInService)
+Median_1
+
 
 # Barplot for Prizm Code effect on Churn
 ggplot(Telecom_Data, aes(x=PrizmCode, fill = Churn)) +geom_bar(position = "dodge2")+ggtitle("Churn distribution for Prizm code")
+
+#install.packages("plotly")
+library(plotly)
+colors <- c('rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+fig <- plot_ly(type='pie', labels=Churned$PrizmCode, values=Churned$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1)))
+fig
+
+fig_1 <- plot_ly(type='pie', labels=Retained$PrizmCode, values=Retained$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1)))
+fig_1
+
 ```
 
 ```{r,results=T}
