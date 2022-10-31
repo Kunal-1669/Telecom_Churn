@@ -1,30 +1,359 @@
+---
+# This is the YAML header/metadata for the document
+title: "Customer Churn Analysis"
+author: "Pranav Chandaliya"
 
+output:
+  html_document:
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
 
-
-```{r, echo=T, results=T}
-telecom <- data.frame(read.csv("Telecom Data.csv"))
-str(telecom)
-head(telecom)
+```{r init, include=F}
+# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
+# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
+# Once installed, load the library.
+library(ezids)
 ```
 
 
-```{r, echo=T, results=T}
-library(ggplot2)
-ggplot(telecom, aes(y=CreditRating)) + geom_boxplot( colour="orange", fill="black") + ggtitle("Credit  using `ggplot`")
-```
-```{r, echo=T, results=T}
-Churned <- subset(telecom, Churn=="Yes")
-NotChurned <- subset(telecom, Churn=="No")
-str(Churned)
-str(NotChurned)
-```
-
-```{r, echo=T, results=T}
-library(ggplot2)
-ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="green") + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis) ", y=" Count (y-axis)"+ ylim(0,100))
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+# knitr::opts_chunk$set(include = F)
+# knitr::opts_chunk$set(echo = TRUE)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
 ```
 
-```{r, echo=T, results=T}
-library(ggplot2)
-ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="red") + ggtitle("Credit Rating for Not Churned Telecom Data") +  labs(x="Credit Rating (x-axis) ", y=" Count (y-axis)"+ ylim(0,1000))
+
+Loading dataset 
+```{r,results="show"}
+telcm <- data.frame(read.csv("Telecom Data.csv"))
+ncol(telcm)
+nrow(telcm)
 ```
+There are total 58 Columns and 51,047 Rows
+
+
+Let's check for null values
+```{r,results="show"}
+library(dplyr)
+library(tidyr)
+## Checking the null values in the dataset
+#summary(telcm)
+#is.null(telcm)
+null_values<-sapply(telcm, function(x) sum(is.na(x)))
+null_values
+```
+Few columns have null values but the count is less,
+
+
+Lets Create New Variables which will help in analysis 
+```{r, results= "show"}
+##Creation of new variables for our analysis
+telcm$perc_recurrent_charge <- (telcm$TotalRecurringCharge /telcm$MonthlyRevenue) * 100
+
+telcm$perc_overage_minute <- (telcm$OverageMinutes / telcm$MonthlyMinutes) * 100
+
+
+str(telcm)
+
+
+
+
+
+```
+
+
+```{r,results="show"}
+#install.packages("naniar")
+#library(naniar)
+#vis_miss(telcm,warn_large_data = FALSE)
+#gg_miss_fct(x = riskfactors, fct = marital)
+
+```
+
+Lets calculate churn rate 
+```{r,results="show"}
+## Getting Churn counts 
+churn_counts<- dplyr::count(telcm,Churn , sort = TRUE)
+#pie(chrun_counts$n, labels = chrun_counts$Churn,explode = 0.1, main = "Pie Chart of Churn Rate ")
+#pie(telcm$Churn)
+```
+
+Lets plot the churn rate using piechart
+
+```{r,results="show"}
+library("ggplot2")
+ggplot(data = churn_counts, aes(x = "", y = n, fill = Churn)) + 
+  geom_bar(stat = "identity") + 
+  coord_polar("y")
+
+
+```
+Trying out plotly for pie chart for more interactive graphs 
+
+```{r,results="show"}
+
+library(plotly)
+colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+fig <- plot_ly(type='pie', labels=churn_counts$Churn, values=churn_counts$n, 
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1)))
+fig
+
+
+```
+
+Subsetting data for in depth analysis on the basis of churn
+and checking the summary of the divided data to analyze the trend
+```{r,results="show"}
+telcm$Churn <- factor(telcm$Churn)
+library(dplyr)
+
+telcm_yes = filter(telcm, Churn == "Yes")
+
+telcm_no = filter(telcm, Churn == "No")
+
+summary(telcm_yes)
+
+
+summary(telcm_no)
+``
+`
+```{r,results="show"}
+summary(telcm_no)
+
+
+```
+
+
+```{r,results="show"}
+
+
+```
+
+```{r,results="show"}
+feat_typ_counts <- data.frame(read.csv("Feat_type_counts.csv"))
+#install.packages("plotrix")
+library(plotrix)
+
+library("ggplot2")
+#pie(feat_typ_counts$Counts, feat_typ_counts$Variable.Type)
+
+piepercent<- round(100 * feat_typ_counts$Counts / sum(feat_typ_counts$Counts), 1)
+
+
+feat_typ_counts$fraction <- feat_typ_counts$Counts / sum(feat_typ_counts$Counts)
+
+# Compute the cumulative percentages (top of each rectangle)
+feat_typ_counts$ymax <- cumsum(feat_typ_counts$fraction)
+
+# Compute the bottom of each rectangle
+feat_typ_counts$ymin <- c(0, head(feat_typ_counts$ymax, n=-1))
+
+# Compute label position
+feat_typ_counts$labelPosition <- (feat_typ_counts$ymax + feat_typ_counts$ymin) / 2
+
+# Compute a good label
+feat_typ_counts$label <- paste0(feat_typ_counts$Variable.Type, "\n Count: ", feat_typ_counts$Counts)
+
+
+ggplot(feat_typ_counts, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Variable.Type)) +
+  geom_rect() +
+  geom_label( x=3.5, aes(y=labelPosition, label=label), size=2) +
+  scale_fill_brewer(palette=4) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+
+
+
+
+
+```
+
+```{r,results="show"}
+
+
+xkablesummary(telcm)
+
+```
+
+```{r,results="show"}
+boxplot(telcm$MonthlyMinutes,
+main = "Monthly Minutes of Customers",
+xlab = "Monthly Min",
+ylab = "Frequency",
+col = "orange",
+border = "brown",
+horizontal = TRUE,
+notch = TRUE
+)
+
+
+```
+
+##Current Headset use in days
+```{r,results="show"}
+
+plot_ly(telcm, y= telcm$CurrentEquipmentDays, color = telcm$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+```
+```{r,results="show"}
+plot_ly(telcm, y= telcm$TotalRecurringCharge, color = telcm$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+```{r,results="show"}
+plot_ly(telcm, y= telcm$MonthsInService, color = telcm$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+```{r,results="show"}
+plot_ly(telcm, y= telcm$perc_recurrent_charge, color = telcm$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+```{r,results="show"}
+plot_ly(telcm, y= telcm$PercChangeMinutes, color = telcm$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+```{r,results="show"}
+plot_ly(telcm, y= telcm$PercChangeRevenues, color = telcm$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+```{r,results="show"}
+library(ggplot2)  
+library(plotly)
+
+set.seed(1)    
+
+gg <- ggplot(telcm,aes(x = MonthlyRevenue, color = 'density')) +  
+  geom_histogram(aes(y = ..density..), bins = 7,  fill = '#67B7D1', alpha = 0.5) +  
+  geom_density(color = '#67B7D1') +  
+  geom_rug(color = '#67B7D1') + 
+  ylab("") + 
+  xlab("")  + theme(legend.title=element_blank()) +
+  scale_color_manual(values = c('density' = '#67B7D1'))
+
+
+ggplotly(gg)%>% 
+  layout(plot_bgcolor='#e5ecf6',   
+             xaxis = list(   
+               title='Time', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff'),   
+             yaxis = list(   
+               title='Value A', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff')) 
+
+```
+
+```{r,results="show"}
+library(ggplot2)  
+library(plotly)
+
+set.seed(1)    
+
+gg <- ggplot(telcm,aes(x = MonthlyMinutes, color = 'density')) +  
+  geom_histogram(aes(y = ..density..), bins = 7,  fill = '#67B7D1', alpha = 0.5) +  
+  geom_density(color = '#67B7D1') +  
+  geom_rug(color = '#67B7D1') + 
+  ylab("") + 
+  xlab("")  + theme(legend.title=element_blank()) +
+  scale_color_manual(values = c('density' = '#67B7D1'))
+
+
+ggplotly(gg)%>% 
+  layout(plot_bgcolor='#e5ecf6',   
+             xaxis = list(   
+               title='Monthly Minutes ', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff'),   
+             yaxis = list(   
+               title='Frequency', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff')) 
+
+
+
+
+```
+
+
+```{r,results="show"}
+qqnorm(telcm$MonthlyMinutes)                        # QQplot 
+
+
+qqline(telcm$MonthlyMinutes, col = "red") 
+#install.packages("car")
+#library("car")
+#qqPlot(telcm$MonthlyMinutes)
+
+```
+```{r,results="show"}
+library("plotly")
+#plot_ly(telcm, y= telcm$AgeHH1, color = telcm$Churn, type = "box") 
+         #layout(boxmode = "group", 
+        # xaxis = list(title=''), 
+        # yaxis = list(title='Frequency'))
+
+
+```
+
+```{r,results="show"}
+
+## Anova Results 
+one.way <- aov(MonthlyMinutes ~ Occupation, data = telcm)
+#summary(one.way)
+xkabledply(one.way, title = "ANOVA result summary")
+```
+```{r,results="show"}
+plot_ly(telcm, y= telcm$perc_recurrent_charge, color = telcm$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
