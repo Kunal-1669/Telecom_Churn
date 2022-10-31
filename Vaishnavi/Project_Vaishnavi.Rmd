@@ -22,14 +22,14 @@ str(NotChurned)
 
 ```{r, echo=T, results=T}
 library(ggplot2)
-ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red") + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000)
+ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
 ```
 
 
 
 ```{r, echo=T, results=T}
 library(ggplot2)
-ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="green") + ggtitle("Credit Rating for Not Churned Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000)
+ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Not Churned Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
 ```
 
 
@@ -37,8 +37,8 @@ ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="green") 
  
 ```{r, echo=T, results=T}
 library(plotly)
-ggplot(telecom, aes(x=AgeHH1))+ geom_histogram(color="Gray",fill = "Blue", bins=30) + labs(x="Age of Customers", y="Count", 
-title="Histogram of Customer Age")
+ggplot(telecom, aes(x=AgeHH1))+ geom_histogram(color="aquamarine4",fill = "aquamarine3",alpha=0.6, bins=30) + labs(x="Age of Customers", y="Frequency", 
+title="Histogram of Customer Age") +  theme_classic()
 ```
 
 
@@ -51,8 +51,7 @@ nrow(AgeFiltered)
 
 ```{r, echo=T, results=T}
 library(ggplot2)
-ggplot(telecom, aes(x=AgeHH1)) + geom_boxplot( colour="orange", fill="pink") + ggtitle("Histogram of Customer Age group`")
-
+ggplot(telecom, aes(x=AgeHH1)) + geom_boxplot( colour="maroon", fill="aquamarine3",alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
 ```
 
 ```{r, echo=T, results=T}
