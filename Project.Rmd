@@ -1,10 +1,10 @@
 
 
-
 ```{r, echo=T, results=T}
 telecom <- data.frame(read.csv("Telecom Data.csv"))
-str(telecom)
 head(telecom)
+str(telecom)
+telecom
 ```
 
 
@@ -19,12 +19,54 @@ str(Churned)
 str(NotChurned)
 ```
 
+
 ```{r, echo=T, results=T}
 library(ggplot2)
-ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="green") + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis) ", y=" Count (y-axis)"+ ylim(0,100))
+ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
+```
+
+
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Not Churned Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
+```
+
+
+ 
+ 
+```{r, echo=T, results=T}
+library(plotly)
+ggplot(telecom, aes(x=AgeHH1))+ geom_histogram(color="aquamarine4",fill = "aquamarine3",alpha=0.6, bins=30) + labs(x="Age of Customers", y="Frequency", 
+title="Histogram of Customer Age") +  theme_classic()
+```
+
+
+```{r, echo=T, results=T}
+library(dplyr)
+AgeFiltered = filter(telecom, AgeHH1== 0)
+nrow(AgeFiltered)
+(13917/nrow(telecom))*100
 ```
 
 ```{r, echo=T, results=T}
 library(ggplot2)
-ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="red") + ggtitle("Credit Rating for Not Churned Telecom Data") +  labs(x="Credit Rating (x-axis) ", y=" Count (y-axis)"+ ylim(0,1000))
+ggplot(telecom, aes(x=AgeHH1)) + geom_boxplot( colour="maroon", fill="aquamarine3",alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
 ```
+
+```{r, echo=T, results=T}
+library(plotly)
+plot_ly(telecom, y= telecom$AgeHH1,type = "box", color = telecom$Churn) %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+```
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(telecom, aes(x=Occupation)) + geom_bar(stat="count", fill="maroon") + labs(x="Occupation", y=" Count", title= "Bar Chart of Occupations of Customers")
+```
+
+
+
+
