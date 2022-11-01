@@ -39,9 +39,9 @@ options(scientific=T, digits = 3)
 
 
 ```{r,results="show"}
-telcm <- data.frame(read.csv("Telecom Data.csv"))
-ncol(telcm)
-nrow(telcm)
+Telecom_Data <- data.frame(read.csv("Telecom Data.csv"))
+ncol(Telecom_Data)
+nrow(Telecom_Data)
 ```
 
 
@@ -49,9 +49,9 @@ nrow(telcm)
 library(dplyr)
 library(tidyr)
 
-#summary(telcm)
-#is.null(telcm)
-null_values<-sapply(telcm, function(x) sum(is.na(x)))
+#summary(Telecom_Data)
+#is.null(Telecom_Data)
+null_values<-sapply(Telecom_Data, function(x) sum(is.na(x)))
 
 ```
 
@@ -67,7 +67,7 @@ null_values<-sapply(telcm, function(x) sum(is.na(x)))
 ```{r,results="show"}
 #install.packages("naniar")
 library(naniar)
-#vis_miss(telcm,warn_large_data = FALSE)
+#vis_miss(Telecom_Data,warn_large_data = FALSE)
 #gg_miss_fct(x = riskfactors, fct = marital)
 
 ```
@@ -75,9 +75,9 @@ library(naniar)
 
 ```{r,results="show"}
 #library
-chrun_counts<- dplyr::count(telcm,Churn , sort = TRUE)
+chrun_counts<- dplyr::count(Telecom_Data,Churn , sort = TRUE)
 #pie(chrun_counts$n, labels = chrun_counts$Churn,explode = 0.1, main = "Pie Chart of Churn Rate ")
-#pie(telcm$Churn)
+#pie(Telecom_Data$Churn)
 ```
 
 
@@ -144,12 +144,12 @@ ggplot(feat_typ_counts, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Variable.
 ```{r,results="show"}
 
 
-xkablesummary(telcm)
+xkablesummary(Telecom_Data)
 
 ```
 
 ```{r,results="show"}
-boxplot(telcm$MonthlyMinutes,
+boxplot(Telecom_Data$MonthlyMinutes,
 main = "Monthly Minutes of Customers",
 xlab = "Monthly Min",
 ylab = "Ozone",
