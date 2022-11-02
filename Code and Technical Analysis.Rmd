@@ -568,7 +568,7 @@ The scatter graph in the aforementioned section illustrates the positive correla
 
 Now lets plot when there is no churn, that is when there is retention of customers. 
 
-```{r, results=T}
+```{r, echo=, results=T}
 retentiondata <- subset(datatel, datatel$Churn == "No")
 head(retentiondata)
 nrow(retentiondata)
@@ -580,7 +580,7 @@ sum(is.na(retentiondata$OverageMinutes))
 We can see there are 86 NA values in monthly revenue and overageminutes columns when there is no churn.
 Lets remove those NA values
 
-```{r, results=T}
+```{r, echo=T, results=T}
 retentiondata2 <- na.omit(retentiondata)
 head(retentiondata2)
 nrow(retentiondata2)
@@ -593,14 +593,14 @@ We have removed all the null values.
 Now lets do correlation
 
 
-```{r, results=T}
+```{r, echo=T, results=T}
 cor.test(retentiondata2$MonthlyRevenue, retentiondata2$OverageMinutes, method='spearman')
 ```
 
 Even when there is retention the output is 0.56, we can say the that Monthly revenue varies postively as overage minutes varies. 
 
 
-```{r, results=T}
+```{r, echo=T, results=T}
 
 #Plot with statistical results
 
@@ -613,7 +613,7 @@ ggplot(data = retentiondata2)+
 From the graph we can see that as Overage Minutes increases, Monthly revenue also increases. 
 
 
-```{r, results=T}
+```{r, echo=T, results=T}
 #install.packages("ggpubr")
 library(ggpubr)
 ggscatter(data = retentiondata2, x = "OverageMinutes", y = "MonthlyRevenue",
@@ -624,7 +624,7 @@ The graph shows that even for customers who are still with the company, monthly 
 Also, we can observe that outliers are more for churned customers compared to non-churn customers
 
 
-```{r, results=T}
+```{r, echo=T, results=T}
 datacorr <- Telecom_Data[ , c("MonthlyRevenue","MonthlyMinutes", "TotalRecurringCharge","CustomerCareCalls","ThreewayCalls","ReceivedCalls","OutboundCalls","MonthsInService","HandsetPrice","CreditRating")]   
 head(datacorr)
 nrow(datacorr)
@@ -632,7 +632,7 @@ sum(is.na(datacorr))
 ```
 There are 468 NA values in the subsetted dataset.
 
-```{r, results=T}
+```{r, echo=T, results=T}
 datacorr2 <- na.omit(datacorr)
 nrow(datacorr2)
 sum(is.na(datacorr2))
@@ -645,7 +645,7 @@ Next, we have used few numerical factors, including months of service, outbound 
 
 
 
-```{r, results=T}
+```{r, echo=T, results=T}
 # load package
 #install.packages("ggstatsplot")
 #install.packages("ggcorrplot")
