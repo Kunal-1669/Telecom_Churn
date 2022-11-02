@@ -1,0 +1,265 @@
+---
+title: "Telecom Churn Prediction Analysis"
+output:  
+    rmdformats::readthedown:
+      toc_float: true
+      toc_depth: 3
+      number_sections: true
+      code_folding: hide
+author: "Outliers"
+date: "2022-11-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r libraries, echo=FALSE,include=FALSE}
+library(ggplot2)
+library(plotly)
+```
+
+
+
+# Chapter 1: Introduction
+
+Customer churn is a key business concept that determines the number of customers that stop doing business with a specific company. Telecom industries have undergone a high pace of market liberalization and growth in recent times. In industries highly competitive like this, companies who want to maintain a sustainable business will have to address the churn rate.
+<br>
+For this purpose, we are using a dataset of a major telecom company whose postpaid business of voice-only plans is struggling to maintain its strong foothold in the local market due to:
+
+- High churn rate among customers leading to a revenue decline of ~500k USD every month.
+- The decline in overall customer base (high churn rate combined with low acquisition rate), leading to a decline in total market share.
+<br>
+
+Our analysis will mainly focus on finding out what factors are affecting the churn rate. 
+
+The report is organized as follows:
+
+1. Description of the Data 
+2. Univariate Analysis of the variables
+3. SMART Questions Analysis
+4. Correlation Analysis
+5. Conclusion
+
+# Chapter 2: Description of the Data
+
+## Source Data
+
+For our analysis, we found a dataset on Kaggle("churn_analysis_md"). Our dataset contains 51,047 observations and 58 columns. Our data is imbalanced and since it is a representation of the real world we will be using it without balancing for our initial EDA. Our data is majorly classified into 4 categories: Demographics, Service Usage, Finance, Marketing.
+<br>
+
+Here is the structure of our data:
+
+```{r dataset_structure, echo=FALSE}
+Telecom_Data=data.frame(read.csv("Telecom Data.csv"))
+str(Telecom_Data)
+```
+
+Here is the how the variables been divided into different categories as mentioned above:
+<br>
+
+```{r data buckets, echo=FALSE}
+
+```
+
+## Preparation for EDA
+
+- Created columns like perc_overage_minute from existing columns for fair comparison. For instance,
+  telcm$perc_overage_minute <- (telcm$OverageMinutes / telcm$MonthlyMinutes) * 100
+
+- Converted categorical variables like churn, occupation, credit rating into factor.
+
+- Created two subsets for churned and retained customers respectively for better analysis and visualizations.
+ 
+- Installed packages like plotly to make graphs look more intuitive and elegant.
+
+# Chapter 3: Slicing the data for an overview
+
+## Churn Rate Distribution
+
+A brief overview of the dataset yields the following observations for Churn Rate: 
+The percentage of churned customers are 28.8% and the percentage of the rest of the customers are 71.2%.
+
+```{r Churn_Distribution}
+churn_counts<- dplyr::count(Telecom_Data,Churn , sort = TRUE)
+ggplot(data = churn_counts, aes(x = "", y = n, fill = Churn)) + 
+geom_bar(stat = "identity") + 
+coord_polar("y")
+```
+
+## Monthly Minutes, Age and Occupation 
+
+<br>
+
+```{r monthly minutes histogram,echo=FALSE}
+
+ggplot(Telecom_Data, aes(x = MonthlyMinutes)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "blue")+
+ stat_function(fun = dnorm, args = list(mean = mean(Telecom_Data$MonthlyMinutes), sd = sd(Telecom_Data$MonthlyMinutes)))
+```
+```{r montly minutes qqplot,echo=FALSE}
+qqnorm(Telecom_Data$MonthlyMinutes, pch = 1, frame = FALSE)
+qqline(Telecom_Data$MonthlyMinutes, col = "red", lwd = 2)
+```
+```{r}
+MM_Churned <- subset(Telecom_Data, Churn=="Yes")
+MM_Retained <- subset(Telecom_Data, Churn=="No")
+```
+```{r}
+#mean(MM_Churned$MonthlyMinutes)
+#mean(MM_Retained$MonthlyMinutes)
+mean_mm<-mean(MM_Churned$MonthlyMinutes,na.rm=TRUE)
+mean_mm_retain<-mean(MM_Retained$MonthlyMinutes,na.rm=TRUE)
+```
+
+The mean of monthly minutes for churned customers is **`r mean_mm`** and mean of monthly minutes for retained customers is **`r mean_mm_retain`** .Mean for monthly minutes for churned customers is lesser than the retained customers. From the histogram and QQ Plot we can notice that the distribution of the monthly minutes is right skewed. 
+
+
+```{r Age ditribution histogram,echo=FALSE}
+ggplot(Telecom_Data, aes(x = AgeHH1)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill="aquamarine3", alpha=0.6, bins=30) +  labs(x="Age of Customers", y="Frequency", 
+title="Histogram of Customer Age") +  theme_classic()
+```
+
+
+```{r age boxplot, echo=FALSE}
+ggplot(Telecom_Data, aes(y = AgeHH1)) + 
+  geom_boxplot(color="maroon", fill="aquamarine3", alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
+```
+
+
+As we can see from the above two plots, age 0 has maximum frequency which is technically not possible. Hence,we can say that there is an error with the data collection and this will be taken care of during the modelling process.
+
+
+
+```{r Occupation}
+ggplot(Telecom_Data,aes(x=Occupation)) + geom_bar(fill = "aquamarine3") + ggtitle("Frequency distribution of occupation")+ theme_classic()
+```
+
+From this distribution, we can notice that Other and Professional has more frequency wheras the occupation homemaker has the least frequency.
+
+# Chapter 4: SMART Questions Analysis
+
+## Does credit rating have an impact on churn rate?
+
+```{r Credit Rating, echo=F, results=T}
+# Barplot for Credit Rating of Churned Data vs Count using ggplot
+library(ggplot2)
+ggplot(MM_Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
+```
+
+```{r, echo=F, results=T}
+# Barplot for Credit Rating of Retained Data vs Count using ggplot
+library(ggplot2)
+ggplot(MM_Retained, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Retained Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
+```
+- We have plotted two bar graphs for Churned and Retained telecom data , from this we can observe that  
+
+- credit rating has variables which range from highest to lowest values (1 to 7)
+
+- It seems people irrespective of their credit rating, customers are churning and the proportion of churned customer is larger on high credit score.
+
+- so we can infer from this analysis that credit rating does not have major impact on churn rate
+
+
+## At what duration is the churn rate high for the customers?
+
+Here,we want to compare the frequency of churned customers with respect to service months of the customer. For this purpose, we are using a subset of data with only churned customers. Once we look at the histogram below, we can notice that our data is rightly skewed. It can be observed that the customers are mainly churning during the initial 10 to 25 months of the service period. Approximately after 30 months the churn rate is reducing drastically.
+
+<br>
+
+```{r Monthly_Service_Churn_Rate, echo=FALSE,message=FALSE}
+Churned <- subset(Telecom_Data, Churn=="Yes")
+Retained <- subset(Telecom_Data, Churn=="No")
+
+ggplot(Churned, aes(x=MonthsInService, fill=Churn)) + geom_histogram(position='identity',alpha=0.6,color='aquamarine4',fill='aquamarine3')+xlab("Service period for churned customers (In Months) ")+ylab("Frequency") + theme_classic()+ggtitle("Service Months Distribution for Churned customers")
+```
+
+
+## In what Prizm codes are the Churn Rates high?
+
+So we have 4 prizm codes i.e, suburban, rural , town and rural
+We have plotted a pie chart to see the distribution of churn for the same.
+For this purpose we have used 2 different subsets for churned and retained.
+The first one is for the churned customers and we can see that
+The next is for retained customers 
+There is no significant difference between the 2 graphs. 
+But in town and rural area we can notice that the churn rate is slightly 
+higher than retained customers.
+
+```{r PrizmCodes,warning=FALSE,echo=FALSE}
+
+colors <- c('rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+fig <- plot_ly(type='pie', labels=Churned$PrizmCode, values=Churned$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = "Set1"),
+                      line = list(color = '#FFFFFF', width = 1))
+fig
+
+fig_1 <- plot_ly(type='pie', labels=Retained$PrizmCode, values=Retained$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = "Set1"),
+                      line = list(color = '#FFFFFF', width = 1))
+fig_1
+```
+
+## Is occupation independent of churn ?
+
+We want to know if occupation of the customer has any effect on Churn. Since both Occupation and Churn are categorical variables, we are performing Chi-Square test to check for any dependency between these 2 variables. 
+
+H0: Churn is independent of Occupation.
+<br>
+H1: Churn is dependent on Occupation.
+<br>
+```{r Occupation_Churn, echo=FALSE}
+#Creating a contingency table for Occupation and Churn
+Occupation_Churn=table(Telecom_Data$Occupation,Telecom_Data$Churn)
+
+#Performing Chi Square Test to check if occupation is independent of churn
+
+chisq_test=chisq.test(Occupation_Churn)
+chisq_test
+```
+
+From the test, we can notice that the p value is 0.171 which is greater than 0.05, so we will be accepting H0 i.e,the null hypothesis. Therefore, we can conclude that occupation is independent of churn.
+
+
+## Does the monthly revenue average differ for different occupations?
+```{r}
+
+```
+
+
+# Chapter 5: Correlation Analysis
+
+# Chapter 6: Conclusion
+
+By performing the analysis, we gained insights on how our data is structured and what factors are affecting churn in the Telecom industry. After conducting EDA on our variables, we were able to choose better SMART questions and were able to assess what was causing customers to churn.
+
+We gained the following results from our analysis:
+
+- Churned customers use less monthly minutes than the retained customers for similar monthly revenue.
+
+- Few customers have incorrect age as 0 which could be null.
+
+- Customers are churning irrespective of their credit rating and the proportion of churned customer is larger on high credit score. 
+
+- Prizm Codes aren't playing a major difference in Churn rate. However, there is a slight increase in percentage of churned customers compared to other customers in Town and Rural prizm codes.
+
+- Churn rate is high in the initial 10 to 25 months of the service period.
+
+- Occupation is independent of churn.
+
+ 
+
+Finally, we have performed some correlation analysis on few variables.
+- Monthly overage minutes and monthly revenue have moderate positive correlation.
+- There is need of predictive modelling to predict customer churn well in advance.
+
+
+
+
