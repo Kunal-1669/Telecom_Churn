@@ -687,6 +687,9 @@ xkabledply(one.way, title = "ANOVA result summary")
 
 ```
 
+P values < 0.05, Which means null hypothesis is rejected 
+
+Monthly revenue average differ for occupations
 
 
 
