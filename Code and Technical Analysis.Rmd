@@ -367,3 +367,77 @@ How many customer opt out of mailing list
 ```{r}
 ggplot(Telecom_Data,aes(x=OptOutMailings,fill=Churn))+geom_bar(position='identity',alpha=0.6)
 ```
+
+How does credit rating have an impact on Churn?
+
+Boxplot for Credit Rating using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Telecom_Data, aes(y=CreditRating)) + geom_boxplot( colour="orange", fill="black") + ggtitle("Credit Rating  using `ggplot`")
+```
+
+Subsetting Churned and Retained data
+
+```{r, echo=T, results=T}
+Churned <- subset(Telecom_Data, Churn=="Yes")
+Retained <- subset(Telecom_Data, Churn=="No")
+str(Churned)
+str(Retained)
+```
+
+Barplot for Credit Rating of Churned Data vs Count using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
+```
+
+Barplot for Credit Rating of Retained Data vs Count using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Retained, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Retained Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
+```
+
+
+Histogram for representing Age of Customers in Telecom Data
+
+```{r, echo=T, results=T}
+library(plotly)
+ggplot(Telecom_Data, aes(x=AgeHH1))+ geom_histogram(color="aquamarine4",fill = "aquamarine3",alpha=0.6, bins=30) + labs(x="Age of Customers", y="Frequency", 
+title="Histogram of Customer Age") +  theme_classic()
+```
+
+Filtering Age of Primary Users 
+
+```{r, echo=T, results=T}
+library(dplyr)
+AgeFiltered = filter(Telecom_Data, AgeHH1== 0)
+nrow(AgeFiltered)
+(13917/nrow(Telecom_Data))*100
+```
+
+Boxplot Representing Customer Age Group in Telecom Data using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Telecom_Data, aes(y=AgeHH1)) + geom_boxplot( colour="maroon", fill="aquamarine3",alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
+```
+
+Boxplot Representing Customer Age Group in Telecom Data using plotly
+
+```{r, echo=T, results=T}
+library(plotly)
+plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1,type = "box", color = Telecom_Data$Churn) %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+```
+
+Barchart Representing Occupations of Customers in Telecom Data using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Telecom_Data, aes(x=Occupation)) + geom_bar(stat="count", fill="maroon") + labs(x="Occupation", y=" Count", title= "Bar Chart of Occupations of Customers")
+```
