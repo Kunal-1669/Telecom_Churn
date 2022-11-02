@@ -1,0 +1,196 @@
+---
+title: "project"
+output: html_document
+date: "2022-10-22"
+---
+
+```{r init, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+library(ezids)
+library(tidyverse)
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+library(readr)
+library(ggplot2)
+#install.packages(plotly)
+#install.packages("data.table")
+library(plotly)
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+```{r}
+Telecom_Data<-read.csv("Telecom Data.csv")
+```
+## Including Plots
+```{r}
+summary(Telecom_Data)
+```
+You can also embed plots, for example:
+```{r}
+#adata$NonUSTravel<-as.factor(adata$NonUSTravel)
+```
+```{r}
+#adata$NonUSTravel<-ifelse(adata$NonUSTravel=='Yes',1,0)
+ustravel1=Telecom_Data[which(Telecom_Data$NonUSTravel=="Yes"),]
+
+ustravel1<-Telecom_Data
+#ustravel1$NonUSTravel<-as.factor(ustravel$NonUSTravel)
+#ustravel1<-ifelse(ustravel$NonUSTravel=="Yes",1,0)
+```
+```{r}
+
+ustravel1$NonUSTravel<-as.factor(ustravel1$NonUSTravel)
+```
+
+```{r}
+ustravel1$NonUSTravel<-ifelse(ustravel1$NonUSTrave=="Yes",1,0)
+```
+```{r}
+ustravel1$NonUSTravel<-as.integer(ustravel1$NonUSTravel)
+```
+
+
+```{r}
+churned<-Telecom_Data[which(Telecom_Data$Churn=="Yes"),]
+```
+
+```{r}
+not_churned<-Telecom_Data[which(Telecom_Data$Churn=="No"),]
+```
+```{r}
+typeof(churned$NonUSTravel)
+```
+
+
+##Churned and not churned customer who travel outside US and which didn't
+```{r}
+ggplot(churned,aes(x=NonUSTravel,))+geom_bar(color="blue",fill="steelblue",width=0.5)+ggtitle("Churned ")
+ggplot(not_churned,aes(x=NonUSTravel,))+geom_bar(color="blue",fill="steelblue",width=0.5)+ggtitle("Not Churned")
+```
+```{r}
+churn_count<-nrow(Telecom_Data$Churn)
+ggplot(Telecom_Data,aes(x = NonUSTravel,fill=Churn )) +
+geom_bar( position = "stack")+ggtitle("How Travel affects churn")
+```
+```{r}
+
+ churn_count<-nrow(Telecom_Data$Churn)
+#ggplot(ustravel,aes(x = NonUSTravel,fill=Churn )) +
+#geom_bar( position = "dodge")+ggtitle("How Travel affects churn")
+```
+
+
+##How months in service affects churn 
+```{r}
+ggplot(churned,aes(MonthsInService),)+geom_bar()
+```
+```{r pressure, echo=FALSE}
+table1<-table(Telecom_Data$Churn,Telecom_Data$NonUSTravel)
+```
+
+```{r}
+table2<-100*prop.table(table1)
+barplot(table2,ylim=c(0,100),legend=TRUE)
+```
+```{r}
+
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+```{r}
+Churned <- subset(Telecom_Data, Churn=="Yes")
+str(Churned)
+Retained <- subset(Telecom_Data, Churn=="No")
+str(Retained)
+set.seed(321) # just so that everyone have the same sample for comparison
+Retained_sample = Retained[ sample(nrow(Retained),14711), ]
+
+Final=union(Churned,Retained_sample)
+```
+
+```{r}
+#library(plotly)
+#colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+#fig <- plot_ly(type='pie', labels=ustravel$NonUSTravel, values=Churned$n,
+#               textinfo='label+percent',
+#               insidetextorientation='radial',marker = list(colors = colors,
+ #                     line = list(color = '#FFFFFF', width = 1)))
+#fig
+
+```
+```{r}
+library(plotly)
+#colors <- c(col="aquamarine3",'red', alpha=0.2)
+#c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+fig <- plot_ly(type='pie', labels=ustravel$Churn, values=ustravel$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1)))
+fig
+```
+
+```{r}
+ustravel$NonUSTravel
+```
+
+```{r}
+ggplot(Final,aes(x = NonUSTravel,fill=Churn )) +
+geom_bar( position = "stack")+ggtitle("How Travel affects churn (after sampling)")
+```
+
+##Distribution of monthly minutes 
+```{r}
+gg <- ggplot(Telecom_Data,aes(x = MonthlyMinutes, color = 'density')) +  
+  geom_histogram(aes(y = ..density..), bins = 7,  fill = '#67B7D1', alpha = 0.5) +  
+  geom_density(color = '#67B7D1') +  
+  geom_rug(color = '#67B7D1') + 
+  ylab("") + 
+  xlab("")  + theme(legend.title=element_blank()) +
+  scale_color_manual(values = c('density' = '#67B7D1'))
+
+
+ggplotly(gg)%>% 
+  layout(plot_bgcolor='#e5ecf6',   
+             xaxis = list(   
+               title='Monthly Minutes ', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff'),   
+             yaxis = list(   
+               title='Frequency', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff'))
+```
+
+##How dropped calls affects churn rate
+```{r}
+ggplot(Telecom_Data, aes(x=DroppedCalls, fill=Churn)) + geom_histogram(position='identity',alpha=0.6)
+```
+
+```{r}
+ggplot(Telecom_Data,aes(x=IncomeGroup, fill=Churn))+geom_histogram(position='identity',alpha=0.6)
+```
+
+```{r}
+ggplot(Telecom_Data,aes(x=OptOutMailings,fill=Churn))+geom_bar(position='identity',alpha=0.6)
+```
