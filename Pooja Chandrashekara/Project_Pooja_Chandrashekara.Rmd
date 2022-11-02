@@ -1,0 +1,122 @@
+```{r echo=FALSE, include=FALSE}
+Telecom_Data <- read.csv("Telecom Data.csv")
+```
+
+```{r echo=FALSE, include=FALSE}
+churndata <- subset(Telecom_Data, Telecom_Data$Churn == "Yes")
+```
+
+
+```{r echo=FALSE, include=FALSE}
+churndata2 <- na.omit(churndata)
+```
+
+One of the simplest types of quantitative analysis is bivariate analysis. In order to determine their empirical relationship, two variables must be analyzed.
+The goals of these studies are to evaluate whether there is a statistical link between two variables, the strength of the association, and whether one variable can be predicted from another.
+In our study, we employed correlation, a bivariate technique that assesses both the degree of the link and the direction of the relationship between two variables. The value of the correlation coefficient varies from +1 to -1 depending on how strong the association is.
+
+```{r echo=FALSE, include=FALSE}
+cor.test(churndata2$MonthlyRevenue, churndata2$OverageMinutes, method='spearman')
+```
+
+The result of the statistical analysis (correlation) between the variables representing overage minutes and monthly revenue is 0.5911, or almost 0.6. Since the sign is positive, we can conclude that monthly income and overage minutes differ positively for customers that churn. In other words, as the number of overage minutes increases, so does the monthly revenue. 
+
+```{r echo=FALSE, results=T, include=FALSE}
+
+#Plot with statistical results
+
+library(ggplot2)
+```
+
+```{r, Bivariate Analysis, echo=FALSE, results=T}
+ggplot(data = churndata2) + 
+  geom_smooth(mapping = aes(x = OverageMinutes, y = MonthlyRevenue), color="brown") + theme_classic()+ xlab("Overage minutes used by the customer") + ylab("Monthly revenue of the Telecom company ")
+```
+
+The graph in the aforementioned section illustrates the positive correlation between customer overage minutes consumed and the telecom sector's monthly income for customers who churn.
+
+```{r echo=FALSE, results=T, include=FALSE}
+retentiondata <- subset(Telecom_Data, Telecom_Data$Churn == "No")
+
+
+```
+
+```{r echo=FALSE, results=T, include=FALSE}
+retentiondata2 <- na.omit(retentiondata)
+
+```
+
+```{r echo=FALSE, results=T, include=FALSE}
+cor.test(retentiondata2$MonthlyRevenue, retentiondata2$OverageMinutes, method='spearman')
+```
+
+While the correlation between the variables reflecting excess minutes and monthly income for customers who are still active is 0.56 as a result of the statistical study. Again, given that this is a positive indicator, we may concludethe conclusion that monthly income and excess minutes are positively varied for customers who are willing to stay with the telecom company.
+
+
+```{r echo=FALSE, results=T}
+
+ggplot(data = retentiondata2)+
+  geom_smooth(mapping = aes(x = OverageMinutes, y = MonthlyRevenue), color="dark green" ) + theme_classic() + xlab("Overage minutes used by the customer") + ylab("Monthly revenue of the Telecom company ")
+```
+
+The graph shows that even for customers who are still with the company, monthly revenue rises as Overage Minutes rise.
+
+```{r echo=FALSE, results=T, include=FALSE}
+#install.packages("ggpubr")
+library(ggpubr)
+```
+
+```{r echo=FALSE, results=T}
+ggscatter(data = churndata2, x = "OverageMinutes", y = "MonthlyRevenue",
+          conf.int = TRUE, color="brown", xlab="Overage Minutes used by customer", ylab="Monthly Revenue of the Telecom company")
+```
+
+```{r echo=FALSE, results=T}
+#install.packages("ggpubr")
+library(ggpubr)
+ggscatter(data = retentiondata2, x = "OverageMinutes", y = "MonthlyRevenue",
+          conf.int = TRUE, color="dark green", xlab="Overage Minutes used by customer", ylab="Monthly Revenue of the Telecom company")
+```
+
+We can see from the scatter plot above that there are more outliers among the consumers who have left than among those who have stayed.
+
+```{r echo=FALSE, results=T, include=FALSE}
+datacorr <- Telecom_Data[ , c("MonthlyRevenue","MonthlyMinutes", "TotalRecurringCharge","CustomerCareCalls","ThreewayCalls","ReceivedCalls","OutboundCalls","MonthsInService","HandsetPrice","CreditRating")]   
+
+```
+
+```{r echo=FALSE, results=T, include=FALSE}
+datacorr2 <- na.omit(datacorr)
+
+```
+
+```{r echo=FALSE, include=FALSE, results=T}
+# load package
+#install.packages("ggstatsplot")
+#install.packages("ggcorrplot")
+
+library(ggstatsplot)
+library(ggcorrplot)
+library(corrplot)
+```
+
+Multivariate analysis is conceptualized by tradition as the statistical study of experiments in which multiple measurements are made on each experimental unit and for which the relationship among multivariate measurements and their structure are important to the experiment's understanding.
+In our project, we've used a few numerical factors, including months of service, outbound calls, received calls, three-way calls, customer care calls, total recurring calls, and monthly minutes, and we've conducted correlation statistical studies to look at how they relate to one another.
+
+```{r echo=FALSE, results=T}
+ggstatsplot::ggcorrmat(
+data = datacorr2,
+type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
+colors = c("darkred", "white", "steelblue") 
+)
+
+```
+
+
+The above correlation graph leads us to the following conclusions:
+1. Monthly minutes consumed by the client and monthly revenue of the telecom operator are highly associated.
+2. There is a significant probability that customers will receive calls from customer service.
+3. The number of months a consumer stays with a service won't significantly alter its monthly revenue.
+4. The customer service calls made by the telecom sector have no impact on the number of months the clients have left on their subscriptions.
+
+
