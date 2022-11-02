@@ -137,6 +137,7 @@ summary(Telecom_Data_no)
 Data Classification
 
 ```{r,results="show"}
+
 feat_typ_counts <- data.frame(read.csv("Feat_type_counts.csv"))
 #install.packages("plotrix")
 library(plotrix)
