@@ -349,4 +349,21 @@ library("plotly")
 
 ```
 
-itgi
+How travel Affects churn rate
+```{r,results="show"}
+churn_count<-nrow(Telecom_Data$Churn)
+ggplot(Telecom_Data,aes(x = NonUSTravel,fill=Churn )) +
+geom_bar( position = "stack")+ggtitle("How Travel affects churn")
+```
+Do number of dropped call have affect on churn 
+```{r}
+ggplot(Telecom_Data, aes(x=DroppedCalls, fill=Churn)) + geom_histogram(position='identity',alpha=0.6)
+```
+Income group of customers
+```{r}
+ggplot(Telecom_Data,aes(x=IncomeGroup, fill=Churn))+geom_histogram(position='identity',alpha=0.6)
+```
+How many customer opt out of mailing list
+```{r}
+ggplot(Telecom_Data,aes(x=OptOutMailings,fill=Churn))+geom_bar(position='identity',alpha=0.6)
+```
