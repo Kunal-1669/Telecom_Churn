@@ -2,6 +2,7 @@
 # This is the YAML header/metadata for the document
 title: "Customer Churn Analysis"
 author: "Vaishnavi Nagarajaiah"
+date: "`r Sys.Date()`"
 
 output:
   html_document:
@@ -37,7 +38,10 @@ options(scientific=T, digits = 3)
 ```
 
 ```{r, echo=T, results=T}
+#Creating a dataframe
 Telecom_Data <- data.frame(read.csv("Telecom Data.csv"))
+
+#Printing the structure and rows/columns of data
 str(Telecom_Data)
 ncol(Telecom_Data)
 nrow(Telecom_Data)
@@ -45,18 +49,21 @@ nrow(Telecom_Data)
 
 
 ```{r, echo=T, results=T}
+# Boxplot for Credit Rating using ggplot
 library(ggplot2)
-ggplot(Telecom_Data, aes(y=CreditRating)) + geom_boxplot( colour="orange", fill="black") + ggtitle("Credit  using `ggplot`")
+ggplot(Telecom_Data, aes(y=CreditRating)) + geom_boxplot( colour="orange", fill="black") + ggtitle("Credit Rating  using `ggplot`")
 ```
 ```{r, echo=T, results=T}
+# Subsetting Churned and Retained data
 Churned <- subset(Telecom_Data, Churn=="Yes")
-NotChurned <- subset(Telecom_Data, Churn=="No")
+Retained <- subset(Telecom_Data, Churn=="No")
 str(Churned)
-str(NotChurned)
+str(Retained)
 ```
 
 
 ```{r, echo=T, results=T}
+# Barplot for Credit Rating of Churned Data vs Count using ggplot
 library(ggplot2)
 ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
 ```
@@ -64,14 +71,16 @@ ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha
 
 
 ```{r, echo=T, results=T}
+# Barplot for Credit Rating of Retained Data vs Count using ggplot
 library(ggplot2)
-ggplot(NotChurned, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Not Churned Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
+ggplot(Retained, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Retained Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
 ```
 
 
  
  
 ```{r, echo=T, results=T}
+#Histogram for representing Age of Customers in Telecom Data
 library(plotly)
 ggplot(Telecom_Data, aes(x=AgeHH1))+ geom_histogram(color="aquamarine4",fill = "aquamarine3",alpha=0.6, bins=30) + labs(x="Age of Customers", y="Frequency", 
 title="Histogram of Customer Age") +  theme_classic()
@@ -80,6 +89,7 @@ title="Histogram of Customer Age") +  theme_classic()
 
 ```{r, echo=T, results=T}
 library(dplyr)
+#Filtering Age of Primary User 
 AgeFiltered = filter(Telecom_Data, AgeHH1== 0)
 nrow(AgeFiltered)
 (13917/nrow(Telecom_Data))*100
@@ -87,11 +97,13 @@ nrow(AgeFiltered)
 
 ```{r, echo=T, results=T}
 library(ggplot2)
-ggplot(Telecom_Data, aes(x=AgeHH1)) + geom_boxplot( colour="maroon", fill="aquamarine3",alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
+#Boxplot Representing Customer Age Group in Telecom Data using ggplot
+ggplot(Telecom_Data, aes(y=AgeHH1)) + geom_boxplot( colour="maroon", fill="aquamarine3",alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
 ```
 
 ```{r, echo=T, results=T}
 library(plotly)
+#Boxplot Representing Customer Age Group in Telecom Data using plotly
 plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1,type = "box", color = Telecom_Data$Churn) %>% 
          layout(boxmode = "group", 
          xaxis = list(title=''), 
@@ -99,6 +111,7 @@ plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1,type = "box", color = Telecom_Data$
 ```
 
 ```{r, echo=T, results=T}
+#Barchart Representing Occupations of Customers in Telecom Data using ggplot
 library(ggplot2)
 ggplot(Telecom_Data, aes(x=Occupation)) + geom_bar(stat="count", fill="maroon") + labs(x="Occupation", y=" Count", title= "Bar Chart of Occupations of Customers")
 ```
