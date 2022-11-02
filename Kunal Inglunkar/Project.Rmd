@@ -14,8 +14,13 @@ knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
 library(readr)
 library(ggplot2)
+<<<<<<< Updated upstream
 install.packages(plotly)
 install.packages("data.table")
+=======
+#install.packages(plotly)
+#install.packages("data.table")
+>>>>>>> Stashed changes
 library(plotly)
 # options(scipen=9, digits = 3) 
 # ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
@@ -32,11 +37,19 @@ When you click the **Knit** button a document will be generated that includes bo
 summary(cars)
 ```
 ```{r}
+<<<<<<< Updated upstream
 adata<-read.csv("Telecom Data.csv")
 ```
 ## Including Plots
 ```{r}
 summary(adata)
+=======
+Telecom_Data<-read.csv("Telecom Data.csv")
+```
+## Including Plots
+```{r}
+summary(Telecom_Data)
+>>>>>>> Stashed changes
 ```
 You can also embed plots, for example:
 ```{r}
@@ -44,9 +57,15 @@ You can also embed plots, for example:
 ```
 ```{r}
 #adata$NonUSTravel<-ifelse(adata$NonUSTravel=='Yes',1,0)
+<<<<<<< Updated upstream
 ustravel1=adata[which(adata$NonUSTravel=="Yes"),]
 
 ustravel1<-adata
+=======
+ustravel1=Telecom_Data[which(Telecom_Data$NonUSTravel=="Yes"),]
+
+ustravel1<-Telecom_Data
+>>>>>>> Stashed changes
 #ustravel1$NonUSTravel<-as.factor(ustravel$NonUSTravel)
 #ustravel1<-ifelse(ustravel$NonUSTravel=="Yes",1,0)
 ```
@@ -62,6 +81,7 @@ ustravel1$NonUSTravel<-ifelse(ustravel1$NonUSTrave=="Yes",1,0)
 ustravel1$NonUSTravel<-as.integer(ustravel1$NonUSTravel)
 ```
 ```{r}
+<<<<<<< Updated upstream
 pie(ustravel1$NonUSTravel)
 ```
 
@@ -71,6 +91,17 @@ churned<-adata[which(adata$Churn=="Yes"),]
 
 ```{r}
 not_churned<-adata[which(adata$Churn=="No"),]
+=======
+#pie(ustravel1$NonUSTravel)
+```
+
+```{r}
+churned<-Telecom_Data[which(Telecom_Data$Churn=="Yes"),]
+```
+
+```{r}
+not_churned<-Telecom_Data[which(Telecom_Data$Churn=="No"),]
+>>>>>>> Stashed changes
 ```
 ```{r}
 typeof(churned$NonUSTravel)
@@ -81,15 +112,26 @@ ggplot(churned,aes(x=NonUSTravel,))+geom_bar(color="blue",fill="steelblue",width
 ggplot(not_churned,aes(x=NonUSTravel,))+geom_bar(color="blue",fill="steelblue",width=0.5)+ggtitle("Not Churned")
 ```
 ```{r}
+<<<<<<< Updated upstream
 churn_count<-nrow(adata$Churn)
 ggplot(adata,aes(x = NonUSTravel,fill=Churn )) +
+=======
+churn_count<-nrow(Telecom_Data$Churn)
+ggplot(Telecom_Data,aes(x = NonUSTravel,fill=Churn )) +
+>>>>>>> Stashed changes
 geom_bar( position = "stack")+ggtitle("How Travel affects churn")
 ```
 ```{r}
 
+<<<<<<< Updated upstream
  churn_count<-nrow(adata$Churn)
 ggplot(ustravel,aes(x = NonUSTravel,fill=Churn )) +
 geom_bar( position = "dodge")+ggtitle("How Travel affects churn")
+=======
+ churn_count<-nrow(Telecom_Data$Churn)
+#ggplot(ustravel,aes(x = NonUSTravel,fill=Churn )) +
+#geom_bar( position = "dodge")+ggtitle("How Travel affects churn")
+>>>>>>> Stashed changes
 ```
 
 
@@ -98,7 +140,11 @@ geom_bar( position = "dodge")+ggtitle("How Travel affects churn")
 ggplot(churned,aes(MonthsInService),)+geom_bar()
 ```
 ```{r pressure, echo=FALSE}
+<<<<<<< Updated upstream
 table1<-table(adata$Churn,adata$NonUSTravel)
+=======
+table1<-table(Telecom_Data$Churn,Telecom_Data$NonUSTravel)
+>>>>>>> Stashed changes
 ```
 
 ```{r}
@@ -114,9 +160,15 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 
 
 ```{r}
+<<<<<<< Updated upstream
 Churned <- subset(adata, Churn=="Yes")
 str(Churned)
 Retained <- subset(adata, Churn=="No")
+=======
+Churned <- subset(Telecom_Data, Churn=="Yes")
+str(Churned)
+Retained <- subset(Telecom_Data, Churn=="No")
+>>>>>>> Stashed changes
 str(Retained)
 set.seed(321) # just so that everyone have the same sample for comparison
 Retained_sample = Retained[ sample(nrow(Retained),14711), ]
@@ -125,6 +177,7 @@ Final=union(Churned,Retained_sample)
 ```
 
 ```{r}
+<<<<<<< Updated upstream
 
 colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
 
@@ -134,6 +187,17 @@ fig <- plot_ly(type='pie', labels=ustravel$NonUSTravel, values=Churned$n,
                insidetextorientation='radial',marker = list(colors = colors,
                       line = list(color = '#FFFFFF', width = 1)))
 fig
+=======
+#library(plotly)
+#colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+#fig <- plot_ly(type='pie', labels=ustravel$NonUSTravel, values=Churned$n,
+#               textinfo='label+percent',
+#               insidetextorientation='radial',marker = list(colors = colors,
+ #                     line = list(color = '#FFFFFF', width = 1)))
+#fig
+>>>>>>> Stashed changes
 
 ```
 ```{r}

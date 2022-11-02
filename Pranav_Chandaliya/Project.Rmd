@@ -58,8 +58,8 @@ null_values<-sapply(telcm, function(x) sum(is.na(x)))
 ```{r,results="show"}
 
 
-##devtools::install_github('thomasp85/gganimate',force=T
-                         )
+##devtools::install_github('thomasp85/gganimate',force=T)
+                         
 
 #null_values
 
