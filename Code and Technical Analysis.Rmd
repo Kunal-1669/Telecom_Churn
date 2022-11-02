@@ -20,6 +20,7 @@ output:
 # Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
 # Once installed, load the library.
 library(ezids)
+
 ```
 
 
@@ -435,9 +436,81 @@ plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1,type = "box", color = Telecom_Data$
          yaxis = list(title='Frequency'))
 ```
 
-Barchart Representing Occupations of Customers in Telecom Data using ggplot
+Creating a subset for Churned and retained customers
 
-```{r, echo=T, results=T}
-library(ggplot2)
-ggplot(Telecom_Data, aes(x=Occupation)) + geom_bar(stat="count", fill="maroon") + labs(x="Occupation", y=" Count", title= "Bar Chart of Occupations of Customers")
+```{r,results=T}
+#Created a subset for Churned and Retained data
+
+Churned <- subset(Telecom_Data, Churn=="Yes")
+Retained <- subset(Telecom_Data, Churn=="No")
 ```
+
+Analyzing the churn rate with respect to months in service
+
+```{r Histogram,results=T}
+
+# Histogram for relationship between months in service and Churn
+ggplot(Churned, aes(x=MonthsInService, fill=Churn)) + geom_histogram(position='identity',alpha=0.6,color='aquamarine4',fill='aquamarine3')+xlab("Service period for churned customers (In Months) ")+ylab("Frequency") + theme_classic()+ggtitle("Service Months Distribution for Churned customers")
+
+Mean_MonthsInService=mean(Churned$MonthsInService)
+print(paste("Mean of service months of the customer:",Mean_MonthsInService))
+
+Median_MonthsInService=median(Churned$MonthsInService)
+print(paste("Median of service months of the customer:",Median_MonthsInService))
+```
+
+Analyzing Prizm Codes effect on Churn rate
+
+```{r PrizmCode,results=T}
+
+# Barplot for Prizm Code effect on Churn
+ggplot(Telecom_Data, aes(x=PrizmCode, fill = Churn)) +geom_bar(position = "dodge2")+ggtitle("Churn distribution for Prizm code")
+
+#install.packages("plotly")
+library(plotly)
+colors <- c('rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+fig <- plot_ly(type='pie', labels=Churned$PrizmCode, values=Churned$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = "Set1"),
+                      line = list(color = '#FFFFFF', width = 1))
+fig
+
+fig_1 <- plot_ly(type='pie', labels=Retained$PrizmCode, values=Retained$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = "Set1"),
+                      line = list(color = '#FFFFFF', width = 1))
+fig_1
+
+```
+
+Checking if occupation has any effect on Churn
+
+```{r Occupation,results=T}
+
+#Frequency distribution of Occupation
+
+ggplot(Telecom_Data,aes(x=Occupation)) + geom_bar(fill = "bisque") + ggtitle("Frequency distribution of occupation") 
+
+#Creating a contingency table for Occupation and Churn
+Occupation_Churn<-table(Telecom_Data$Occupation,Telecom_Data$Churn)
+str(Occupation_Churn)
+
+#Performing Chi Square Test to check if occupation is independent of churn
+
+chisq_test=chisq.test(Occupation_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+p value is greater than 0.05. Hence we will be accepting the null hypothesis, H0.
+Therefore we can say that occupation is independent of churn.
+
+
+
+
+
+
+
