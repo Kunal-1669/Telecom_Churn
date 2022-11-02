@@ -671,7 +671,21 @@ The above correlation graph leads us to the following conclusions:
 3. The number of months a consumer stays with a service won't significantly alter its monthly revenue.
 4. The customer service calls made by the telecom sector have no impact on the number of months the clients have left on their subscriptions.
 
+## Does the monthly revenue average differ for different occupations?
 
+H0: Average monthly revenue is similar across different occupations
+
+H1: Average monthly revenue is different across different occupations
+
+```{r}
+
+
+## Anova Results 
+one.way <- aov(MonthlyMinutes ~ Occupation, data = Telecom_Data)
+#summary(one.way)
+xkabledply(one.way, title = "ANOVA result summary")
+
+```
 
 
 
