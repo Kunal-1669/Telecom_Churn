@@ -38,15 +38,24 @@ options(scientific=T, digits = 3)
 ```
 
 
-Loading dataset 
+Loading our dataset into a dataframe.
+
 ```{r,results="show"}
 Telecom_Data <- data.frame(read.csv("Telecom Data.csv"))
 ncol(Telecom_Data)
 nrow(Telecom_Data)
 ```
-There are total 58 Columns and 51,047 Rows
 
-Converting few columns to factor
+There are total 58 Columns and 51,047 Rows.
+
+Let us print the structure of our data.
+
+```{r,results=T}
+str(Telecom_Data)
+```
+
+Here we are converting a few columns to factor data type.
+
 ```{r,results="show"}
 Telecom_Data$Churn <- factor(Telecom_Data$Churn)
 Telecom_Data$CreditRating <- factor(Telecom_Data$CreditRating) 
@@ -54,8 +63,13 @@ Telecom_Data$Occupation <- factor(Telecom_Data$Occupation)
 
 ```
 
+Getting the summary of our data.
+```{r,results="show"}
+xkablesummary(Telecom_Data)
+```
 
 Let's check for null values
+
 ```{r,results="show"}
 library(dplyr)
 library(tidyr)
@@ -65,10 +79,12 @@ library(tidyr)
 null_values<-sapply(Telecom_Data, function(x) sum(is.na(x)))
 null_values
 ```
+
 Few columns have null values but the count is less,
 
 
-Lets Create New Variables which will help in analysis 
+Lets create new variables which will help with our analysis.
+
 ```{r, results= "show"}
 ##Creation of new variables for our analysis
 Telecom_Data$perc_recurrent_charge <- (Telecom_Data$TotalRecurringCharge /Telecom_Data$MonthlyRevenue) * 100
@@ -79,7 +95,7 @@ str(Telecom_Data)
 
 ```
 
-Lets calculate churn rate 
+Let us check the count for churn.
 
 ```{r,results="show"}
 ## Getting Churn counts 
@@ -87,7 +103,7 @@ churn_counts<- dplyr::count(Telecom_Data,Churn , sort = TRUE)
 
 ```
 
-Lets plot the churn rate using pie chart
+We are plotting a bar chart here to see the churn distribution.
 
 ```{r,results="show"}
 library("ggplot2")
@@ -98,7 +114,7 @@ ggplot(data = churn_counts, aes(x = "", y = n, fill = Churn)) +
 
 ```
 
-Trying out plotly for pie chart for more interactive graphs 
+Trying out plotly for pie chart for more interactive graphs.
 
 ```{r,results="show"}
 
@@ -115,8 +131,7 @@ fig
 
 ```
 
-Subsetting data for in depth analysis on the basis of churn
-and checking the summary of the divided data to analyze the trend
+Creating a subset for churned and retained customers for deep dive analysis and checking the summary of the divided data to analyze the trend.
 
 ```{r,results="show"}
 
@@ -134,7 +149,7 @@ summary(Telecom_Data_no)
 ```
 
 
-Data Classification
+Showing the classification of our data into major categories.
 
 ```{r,results="show"}
 
@@ -179,15 +194,9 @@ ggplot(feat_typ_counts, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Variable.
 
 ```
 
-Getting summary of the data
-```{r,results="show"}
 
+##Plotting a Box plot of Monthly Minutes
 
-xkablesummary(Telecom_Data)
-
-```
-
-Box plot of the Monnthly Minutes
 ```{r,results="show"}
 boxplot(Telecom_Data$MonthlyMinutes,
 main = "Monthly Minutes of Customers",
@@ -198,11 +207,10 @@ border = "brown",
 horizontal = TRUE,
 notch = TRUE
 )
-
-
 ```
 
 ##Current Headset use in days
+
 ```{r,results="show"}
 
 plot_ly(Telecom_Data, y= Telecom_Data$CurrentEquipmentDays, color = Telecom_Data$Churn, type = "box") %>% 
@@ -213,7 +221,8 @@ plot_ly(Telecom_Data, y= Telecom_Data$CurrentEquipmentDays, color = Telecom_Data
 ```
 
 
-Boxplot of Total Recurring Charge
+##Boxplot of Total Recurring Charge
+
 ```{r,results="show"}
 plot_ly(Telecom_Data, y= Telecom_Data$TotalRecurringCharge, color = Telecom_Data$Churn, type = "box") %>% 
          layout(boxmode = "group", 
@@ -222,7 +231,9 @@ plot_ly(Telecom_Data, y= Telecom_Data$TotalRecurringCharge, color = Telecom_Data
 
 
 ```
-Box plot of Month in Service
+
+##Box plot of Month in Service
+
 ```{r,results="show"}
 plot_ly(Telecom_Data, y= Telecom_Data$MonthsInService, color = Telecom_Data$Churn, type = "box") %>% 
          layout(boxmode = "group", 
@@ -232,7 +243,8 @@ plot_ly(Telecom_Data, y= Telecom_Data$MonthsInService, color = Telecom_Data$Chur
 
 ```
 
-Box plot of the Percent change in recurrent charge
+##Box plot of the Percent change in recurrent charge
+
 ```{r,results="show"}
 plot_ly(Telecom_Data, y= Telecom_Data$perc_recurrent_charge, color = Telecom_Data$Churn, type = "box") %>% 
          layout(boxmode = "group", 
@@ -242,7 +254,8 @@ plot_ly(Telecom_Data, y= Telecom_Data$perc_recurrent_charge, color = Telecom_Dat
 
 ```
 
-Box plot of Percent change in Minutes
+##Box plot of Percent change in Minutes
+
 ```{r,results="show"}
 plot_ly(Telecom_Data, y= Telecom_Data$PercChangeMinutes, color = Telecom_Data$Churn, type = "box") %>% 
          layout(boxmode = "group", 
@@ -252,7 +265,8 @@ plot_ly(Telecom_Data, y= Telecom_Data$PercChangeMinutes, color = Telecom_Data$Ch
 
 ```
 
-Box plot of Percent change in Revenues
+##Box plot of Percent change in Revenues
+
 ```{r,results="show"}
 plot_ly(Telecom_Data, y= Telecom_Data$PercChangeRevenues, color = Telecom_Data$Churn, type = "box") %>% 
          layout(boxmode = "group", 
@@ -264,7 +278,8 @@ plot_ly(Telecom_Data, y= Telecom_Data$PercChangeRevenues, color = Telecom_Data$C
 
 
 
-Distribution of the Montly Revenue
+##Distribution of the Montly Revenue
+
 ```{r,results="show"}
 library(ggplot2)  
 library(plotly)
@@ -294,7 +309,9 @@ ggplotly(gg)%>%
                gridcolor = 'ffff')) 
 
 ```
-Distribution of Monthly Minutes
+
+##Distribution of Monthly Minutes
+
 ```{r,results="show"}
 library(ggplot2)  
 library(plotly)
@@ -349,59 +366,34 @@ library("plotly")
 
 ```
 
-How travel Affects churn rate
+
+Checking how Non US travel affects the churn rate
+
 ```{r,results="show"}
 churn_count<-nrow(Telecom_Data$Churn)
 ggplot(Telecom_Data,aes(x = NonUSTravel,fill=Churn )) +
 geom_bar( position = "stack")+ggtitle("How Travel affects churn")
 ```
-Do number of dropped call have affect on churn 
+
+Do the number of dropped call have affect on churn ?
+
 ```{r}
 ggplot(Telecom_Data, aes(x=DroppedCalls, fill=Churn)) + geom_histogram(position='identity',alpha=0.6)
 ```
-Income group of customers
+
+Income group of the customers
+
 ```{r}
 ggplot(Telecom_Data,aes(x=IncomeGroup, fill=Churn))+geom_histogram(position='identity',alpha=0.6)
 ```
-How many customer opt out of mailing list
+
+How many customer are opting out of mailing list
+
 ```{r}
 ggplot(Telecom_Data,aes(x=OptOutMailings,fill=Churn))+geom_bar(position='identity',alpha=0.6)
 ```
 
-How does credit rating have an impact on Churn?
-
-Boxplot for Credit Rating using ggplot
-
-```{r, echo=T, results=T}
-library(ggplot2)
-ggplot(Telecom_Data, aes(y=CreditRating)) + geom_boxplot( colour="orange", fill="black") + ggtitle("Credit Rating  using `ggplot`")
-```
-
-Subsetting Churned and Retained data
-
-```{r, echo=T, results=T}
-Churned <- subset(Telecom_Data, Churn=="Yes")
-Retained <- subset(Telecom_Data, Churn=="No")
-str(Churned)
-str(Retained)
-```
-
-Barplot for Credit Rating of Churned Data vs Count using ggplot
-
-```{r, echo=T, results=T}
-library(ggplot2)
-ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
-```
-
-Barplot for Credit Rating of Retained Data vs Count using ggplot
-
-```{r, echo=T, results=T}
-library(ggplot2)
-ggplot(Retained, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Retained Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
-```
-
-
-Histogram for representing Age of Customers in Telecom Data
+Histogram for representing age of customers in Telecom Data
 
 ```{r, echo=T, results=T}
 library(plotly)
@@ -409,7 +401,7 @@ ggplot(Telecom_Data, aes(x=AgeHH1))+ geom_histogram(color="aquamarine4",fill = "
 title="Histogram of Customer Age") +  theme_classic()
 ```
 
-Filtering Age of Primary Users 
+Filtering age of primary users 
 
 ```{r, echo=T, results=T}
 library(dplyr)
@@ -418,14 +410,14 @@ nrow(AgeFiltered)
 (13917/nrow(Telecom_Data))*100
 ```
 
-Boxplot Representing Customer Age Group in Telecom Data using ggplot
+Boxplot representing customer age group in Telecom Data using ggplot
 
 ```{r, echo=T, results=T}
 library(ggplot2)
 ggplot(Telecom_Data, aes(y=AgeHH1)) + geom_boxplot( colour="maroon", fill="aquamarine3",alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
 ```
 
-Boxplot Representing Customer Age Group in Telecom Data using plotly
+Boxplot representing Customer age group in Telecom Data using plotly
 
 ```{r, echo=T, results=T}
 library(plotly)
@@ -435,16 +427,39 @@ plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1,type = "box", color = Telecom_Data$
          yaxis = list(title='Frequency'))
 ```
 
-Creating a subset for Churned and retained customers
+## Does credit rating have an impact on churn rate?
 
-```{r,results=T}
-#Created a subset for Churned and Retained data
+Boxplot for Credit Rating using ggplot
 
-Churned <- subset(Telecom_Data, Churn=="Yes")
-Retained <- subset(Telecom_Data, Churn=="No")
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Telecom_Data, aes(y=CreditRating)) + geom_boxplot( colour="orange", fill="black") + ggtitle("Credit Rating  using `ggplot`")
 ```
 
-Analyzing the churn rate with respect to months in service
+Creating a subset for Churned and Retained customers data
+
+```{r, echo=T, results=T}
+Churned <- subset(Telecom_Data, Churn=="Yes")
+Retained <- subset(Telecom_Data, Churn=="No")
+
+```
+
+
+Frequency barplot for Credit Rating of Churned customers using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
+```
+
+Frequency barplot for Credit Rating of Retained customers using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Retained, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Retained Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
+```
+
+## At what duration is the churn rate high for the customers?
 
 ```{r Histogram,results=T}
 
@@ -458,7 +473,7 @@ Median_MonthsInService=median(Churned$MonthsInService)
 print(paste("Median of service months of the customer:",Median_MonthsInService))
 ```
 
-Analyzing Prizm Codes effect on Churn rate
+## In what Prizm codes are the Churn Rates high?
 
 ```{r PrizmCode,results=T}
 
@@ -484,13 +499,13 @@ fig_1
 
 ```
 
-Checking if occupation has any effect on Churn
+## Is occupation independent of churn ?
 
 ```{r Occupation,results=T}
 
 #Frequency distribution of Occupation
 
-ggplot(Telecom_Data,aes(x=Occupation)) + geom_bar(fill = "bisque") + ggtitle("Frequency distribution of occupation") 
+ggplot(Telecom_Data,aes(x=Occupation)) + geom_bar(fill = "aquamarine3") + ggtitle("Frequency distribution of occupation") 
 
 #Creating a contingency table for Occupation and Churn
 Occupation_Churn<-table(Telecom_Data$Occupation,Telecom_Data$Churn)
@@ -507,16 +522,35 @@ print(paste("The p value is:",p_value))
 p value is greater than 0.05. Hence we will be accepting the null hypothesis, H0.
 Therefore we can say that occupation is independent of churn.
 
+## Does the monthly revenue average differ for different occupations?
+
+H0: Average monthly revenue is similar across different occupations
+
+H1: Average monthly revenue is different across different occupations
+
+```{r}
+
+
+## Anova Results 
+one.way <- aov(MonthlyMinutes ~ Occupation, data = Telecom_Data)
+#summary(one.way)
+xkabledply(one.way, title = "ANOVA result summary")
+
+```
+
+P values < 0.05, Which means null hypothesis is rejected 
+
+Monthly revenue average differ for occupations
+
+
+**Bivariate analysis of variables**
+
 ```{r Bivariate-Analysis, echo=T, results=T}
 Telecom_Data <- read.csv("Telecom Data.csv")
-typeof(Telecom_Data)
-head(Telecom_Data)
 ```
 Correlation Analysis of Monthly Revenue and Overage Minutes for churned customers. 
 ```{r Correlation Analysis, echo=T, results=T}
 churndata <- subset(Telecom_Data, Telecom_Data$Churn == "Yes")
-head(churndata)
-nrow(churndata)
 sum(is.na(churndata$MonthlyRevenue))
 sum(is.na(churndata$OverageMinutes))
 
@@ -527,8 +561,6 @@ Lets remove those NA values
 
 ```{r, echo=T, results=T}
 churndata2 <- na.omit(churndata)
-head(churndata2)
-nrow(churndata2)
 sum(is.na(churndata2$MonthlyRevenue))
 sum(is.na(churndata2$OverageMinutes))
 ```
@@ -668,25 +700,6 @@ The above correlation graph leads us to the following conclusions:
 3. The number of months a consumer stays with a service won't significantly alter its monthly revenue.
 4. The customer service calls made by the telecom sector have no impact on the number of months the clients have left on their subscriptions.
 
-## Does the monthly revenue average differ for different occupations?
-
-H0: Average monthly revenue is similar across different occupations
-
-H1: Average monthly revenue is different across different occupations
-
-```{r}
-
-
-## Anova Results 
-one.way <- aov(MonthlyMinutes ~ Occupation, data = Telecom_Data)
-#summary(one.way)
-xkabledply(one.way, title = "ANOVA result summary")
-
-```
-
-P values < 0.05, Which means null hypothesis is rejected 
-
-Monthly revenue average differ for occupations
 
 
 
