@@ -1,7 +1,7 @@
 ---
 # This is the YAML header/metadata for the document
 title: "Customer Churn Analysis code & Technical Analysis"
-author: "Pranav Chandaliya,Vaishanavi Nagarajaiah,Sunisha Harish,Kunal Inglunkar, Pooja Chandrashekara"
+author: "Pranav Chandaliya, Vaishnavi Nagarajaiah, Sunisha Harish, Kunal Inglunkar, Pooja Chandrashekara"
 
 output:
   html_document:
@@ -55,7 +55,6 @@ Telecom_Data$Occupation <- factor(Telecom_Data$Occupation)
 ```
 
 
-
 Let's check for null values
 ```{r,results="show"}
 library(dplyr)
@@ -98,6 +97,7 @@ ggplot(data = churn_counts, aes(x = "", y = n, fill = Churn)) +
 
 
 ```
+
 Trying out plotly for pie chart for more interactive graphs 
 
 ```{r,results="show"}
@@ -117,11 +117,10 @@ fig
 
 Subsetting data for in depth analysis on the basis of churn
 and checking the summary of the divided data to analyze the trend
+
 ```{r,results="show"}
 
 library(dplyr)
-
-
 
 
 Telecom_Data_yes = filter(Telecom_Data, Churn == "Yes")
