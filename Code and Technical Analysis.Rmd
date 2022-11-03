@@ -514,7 +514,7 @@ head(Telecom_Data)
 ```
 Correlation Analysis of Monthly Revenue and Overage Minutes for churned customers. 
 ```{r Correlation Analysis, echo=T, results=T}
-churndata <- subset(Telecom_Data, datatel$Churn == "Yes")
+churndata <- subset(Telecom_Data, Telecom_Data$Churn == "Yes")
 head(churndata)
 nrow(churndata)
 sum(is.na(churndata$MonthlyRevenue))
@@ -537,7 +537,7 @@ sum(is.na(churndata2$OverageMinutes))
 We have removed all the null values.
 
 
-```{r,echo=TRUE,results=T}
+```{r,echo=T,results=T}
 cor.test(churndata2$MonthlyRevenue, churndata2$OverageMinutes, method='spearman')
 ```
 
@@ -546,10 +546,8 @@ The output is 0.5911 which is approximately 0.6.
 As the sign is positive, we can say that monthly revenue and overage minutes vary postively when there is churn. That is, the as the overage minutes increases, monthly revenue also increases. 
 
 
-```{r, echo=True, results=T}
-
+```{r, echo=T, results=T}
 #Plot with statistical results
-
 library(ggplot2)
 ggplot(data = churndata2) + 
   geom_smooth(mapping = aes(x = OverageMinutes, y = MonthlyRevenue, color="Brown")) + theme_classic()+
@@ -557,7 +555,7 @@ xlab("Overage minutes used by the customer") + ylab("Monthly revenue of the Tele
 ```
 From the graph we can see that as Overage Minutes increased, Monthly revenue also increased. 
 
-```{r, echo=True, results=T}
+```{r, echo=T, results=T}
 #install.packages("ggpubr")
 library(ggpubr)
 ggscatter(data = churndata2, x = "OverageMinutes", y = "MonthlyRevenue",
@@ -567,8 +565,8 @@ The scatter graph in the aforementioned section illustrates the positive correla
 
 Now lets plot when there is no churn, that is when there is retention of customers. 
 
-```{r, echo=, results=T}
-retentiondata <- subset(datatel, datatel$Churn == "No")
+```{r, echo=T, results=T}
+retentiondata <- subset(Telecom_Data, Telecom_Data$Churn == "No")
 head(retentiondata)
 nrow(retentiondata)
 sum(is.na(retentiondata$MonthlyRevenue))
