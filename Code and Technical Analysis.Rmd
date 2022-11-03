@@ -599,8 +599,6 @@ Now lets plot when there is no churn, that is when there is retention of custome
 
 ```{r, echo=T, results=T}
 retentiondata <- subset(Telecom_Data, Telecom_Data$Churn == "No")
-head(retentiondata)
-nrow(retentiondata)
 sum(is.na(retentiondata$MonthlyRevenue))
 sum(is.na(retentiondata$OverageMinutes))
 
@@ -611,8 +609,6 @@ Lets remove those NA values
 
 ```{r, echo=T, results=T}
 retentiondata2 <- na.omit(retentiondata)
-head(retentiondata2)
-nrow(retentiondata2)
 sum(is.na(retentiondata2$MonthlyRevenue))
 sum(is.na(retentiondata2$OverageMinutes))
 ```
@@ -655,8 +651,6 @@ Also, we can observe that outliers are more for churned customers compared to no
 
 ```{r, echo=T, results=T}
 datacorr <- Telecom_Data[ , c("MonthlyRevenue","MonthlyMinutes", "TotalRecurringCharge","CustomerCareCalls","ThreewayCalls","ReceivedCalls","OutboundCalls","MonthsInService","HandsetPrice","CreditRating")]   
-head(datacorr)
-nrow(datacorr)
 sum(is.na(datacorr))
 ```
 There are 468 NA values in the subsetted dataset.
