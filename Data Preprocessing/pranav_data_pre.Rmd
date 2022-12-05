@@ -57,8 +57,8 @@ str(Telecom_Data)
 Here we are converting a few columns to factor data type.
 
 ```{r,results="show"}
-Telecom_Data$Churn <- factor(Telecom_Data$Churn)
-Telecom_Data$CreditRating <- factor(Telecom_Data$CreditRating) 
+#Telecom_Data$Churn <- factor(Telecom_Data$Churn)
+#Telecom_Data$CreditRating <- factor(Telecom_Data$CreditRating) 
 Telecom_Data$Occupation <- factor(Telecom_Data$Occupation)
 
 ```
@@ -155,3 +155,77 @@ write.csv(Telecom_Data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\cl
 
 
 ``` 
+
+```{r,results="show"}
+library("dplyr")
+
+table(Telecom_Data$Churn)
+
+```
+```{r,results="show"}
+
+Telecom_Data_rm <- subset(Telecom_Data, select = -c(CustomerID, ServiceArea))
+
+Telecom_Data_rm$Churn<-replace(Telecom_Data_rm$Churn, Telecom_Data_rm$Churn == "No", 0)
+
+Telecom_Data_rm$Churn<-replace(Telecom_Data_rm$Churn, Telecom_Data_rm$Churn == "Yes", 1)
+
+Telecom_Data_rm$Churn =as.numeric(Telecom_Data_rm$Churn )
+
+
+#Telecom_Data_rm$CreditRating[Telecom_Data_rm$CreditRating == '1-Highest'] <- "1"
+
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "1-Highest", 1)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "2-High", 2)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "3-Good", 3)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "4-Medium",4 )
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "5-Low", 5)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "6-VeryLow", 6)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "7-Lowest", 7)
+
+Telecom_Data_rm$CreditRating <- as.numeric(Telecom_Data_rm$CreditRating )
+
+#Telecom_Data_rm["Churn"][Telecom_Data_rm["Churn"] == "No" ] <- 0
+#Telecom_Data_rm["Churn"][Telecom_Data_rm["Churn"] == "Yes" ] <- 1
+#Telecom_Data_rm$Churn =as.numeric(Telecom_Data_rm$Churn )
+
+unique(Telecom_Data_rm$CreditRating )
+
+
+#sum(Telecom_Data_rm$CreditRating)
+#sum(Telecom_Data_rm$Churn)
+```
+
+```{r,results="show"}
+# Install the required package
+#install.packages("fastDummies")
+cat_cols <-c("ChildrenInHH",'HandsetRefurbished',
+       'HandsetWebCapable', 'TruckOwner', 'RVOwner', 'Homeownership',
+       'BuysViaMailOrder', 'RespondsToMailOffers', 'OptOutMailings',
+       'NonUSTravel', 'OwnsComputer', 'HasCreditCard', 'NewCellphoneUser',
+       'NotNewCellphoneUser', 'OwnsMotorcycle', 'HandsetPrice',
+       'MadeCallToRetentionTeam', 'PrizmCode', 'Occupation',
+       'MaritalStatus')
+
+# Load the library
+library(fastDummies)
+dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dummy = TRUE,remove_selected_columns=TRUE)  
+
+
+
+
+
+
+```
+
+
+
+
+
