@@ -145,4 +145,13 @@ map(Telecom_Data, ~sum(is.na(.)))
 Telecom_Data <- na.omit(Telecom_Data) # Method 1 - Remove NA
 
 sum(is.na(Telecom_Data))
+
 ```
+
+```{r,results="show"}
+
+
+write.csv(Telecom_Data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\cleaned_telcom_data.csv", row.names=FALSE)
+
+
+``` 
