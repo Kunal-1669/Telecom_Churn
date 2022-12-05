@@ -151,7 +151,7 @@ sum(is.na(Telecom_Data))
 ```{r,results="show"}
 
 
-write.csv(Telecom_Data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\cleaned_telcom_data.csv", row.names=FALSE)
+#write.csv(Telecom_Data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\cleaned_telcom_data.csv", row.names=FALSE)
 
 
 ``` 
