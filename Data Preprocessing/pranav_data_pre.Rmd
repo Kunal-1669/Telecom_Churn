@@ -130,4 +130,19 @@ Telecom_Data <-subset(Telecom_Data, MonthlyMinutes > 0)
 nrow(Telecom_Data)
 
 
+
+```
+```{r,results="show"}
+#sum(is.na(Telecom_Data))
+library(tidyverse)
+map(Telecom_Data, ~sum(is.na(.)))
+
+```
+
+```{r,results="show"}
+## Remvoing null values 
+
+Telecom_Data <- na.omit(Telecom_Data) # Method 1 - Remove NA
+
+sum(is.na(Telecom_Data))
 ```
