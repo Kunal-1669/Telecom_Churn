@@ -1,7 +1,7 @@
 ---
 # This is the YAML header/metadata for the document
 title: "Customer Churn Analysis code & Technical Analysis"
-author: "Pranav Chandaliya, Vaishnavi Nagarajaiah, Sunisha Harish, Kunal Inglunkar, Pooja Chandrashekara"
+author: "Pranav Chandaliya"
 
 output:
   html_document:
@@ -70,7 +70,7 @@ ggplot(Telecom_Data, aes(x = AgeHH1)) +
   geom_histogram(aes(y = ..density..),
                  colour = 1, fill = "cyan")
 
-library(ggplot2)
+
 ggplot(Telecom_Data, aes(x = AgeHH2)) + 
   geom_histogram(aes(y = ..density..),
                  colour = 1, fill = "cyan")
@@ -89,9 +89,45 @@ ggplot(Telecom_Data, aes(x = AgeHH1)) +
 ```{r age boxplot, echo=FALSE}
 ggplot(Telecom_Data, aes(x = AgeHH1)) + 
   geom_boxplot(color="red", fill="green", alpha=0.2)
+
+
+ggplot(Telecom_Data, aes(x = AgeHH2)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
 ```
-```
-Telecom_Data
+```{r,results="show"}
+
+ggplot(Telecom_Data, aes(x = DirectorAssistedCalls)) + 
+  geom_histogram(color="red", fill="green", alpha=0.2)
+
 
 ```
 
+```{r,results="show"}
+ggplot(Telecom_Data, aes(x = MonthlyRevenue)) + 
+  geom_boxplot(color="red", fill="green", alpha=0.2)
+
+```
+
+```{r,results="show"}
+## checking inactive customers 
+nrow(subset(Telecom_Data, MonthlyRevenue <= 0))
+
+## checking inactive customers 
+nrow(subset(Telecom_Data, MonthlyMinutes <= 0))
+
+
+#starwars %>% filter(mass > mean(mass, na.rm = TRUE))
+
+```
+```{r,results="show"}
+
+Telecom_Data<-subset(Telecom_Data, MonthlyRevenue >  0)
+
+Telecom_Data <-subset(Telecom_Data, MonthlyMinutes > 0)
+
+
+nrow(Telecom_Data)
+
+
+```
