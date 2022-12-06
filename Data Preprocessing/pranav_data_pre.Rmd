@@ -223,14 +223,47 @@ prepro_data<-dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dum
 ```{r,results="show"}
 
 
-write.csv(prepro_data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\prepro_telcom_data.csv", row.names=FALSE)
+#write.csv(prepro_data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\prepro_telcom_data.csv", row.names=FALSE)
 
 
 ``` 
 
 ```{r,results="show"}
+#install.packages("caTools")
+library(caTools)
+
+
+#make this example reproducible
+set.seed(1)
+
+#Use 80% of dataset as training set and remaining 20% as testing set
+sample <- sample.split(prepro_data$Churn, SplitRatio = 0.8)
+train  <- subset(prepro_data, sample == TRUE)
+test   <- subset(prepro_data, sample == FALSE)
+
+#view dimensions of training set
+dim(train)
+dim(test)
+
+table(train$Churn)
+table(test$Churn)
+
+
+```
+
+```{r, results='markup'}
+library(smotefamily)
+x<-subset(train, select = -c(Churn))
+y<-train$Churn
+#smote = SMOTE(x,y)
+#x<-as.numeric(x)
+#y<-as.numeric(y)
+smote = SMOTE(x, y,6)
+train_smote = smote$data
+str(train_smote)
 
 
 
 ```
+
 
