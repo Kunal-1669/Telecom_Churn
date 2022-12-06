@@ -111,16 +111,20 @@ ggplot(Telecom_Data, aes(x = MonthlyRevenue)) +
 
 ```{r,results="show"}
 ## checking inactive customers 
+
+library(plotly)
+fig <- plot_ly(y = Telecom_Data$MonthlyMinutes, type = "box", quartilemethod="linear") # or "inclusive", or "linear" by default
+
+fig
+
+
 nrow(subset(Telecom_Data, MonthlyRevenue <= 0))
 
 
 
 ## checking inactive customers 
 nrow(subset(Telecom_Data, MonthlyMinutes <= 0))
-library(plotly)
-fig <- plot_ly(y = Telecom_Data$MonthlyMinutes, type = "box", quartilemethod="exclusive") # or "inclusive", or "linear" by default
 
-fig
 
 
 #starwars %>% filter(mass > mean(mass, na.rm = TRUE))
@@ -209,12 +213,23 @@ unique(Telecom_Data_rm$CreditRating )
 
 ```{r,results="show"}
 
-## Removing Features which have chi square value more than 0.05
+## Removing Features which have chi square value more than 0.05 and anova for numerical features 
+
+
+select_feats = c("IncomeGroup","ChildrenInHH","Homeownership","PrizmCode","MonthlyMinutes", "MonthlyRevenue","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","MonthsInService","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH1","AgeHH2")
+
+
+Telecom_Data_rm <- subset(Telecom_Data_rm, select =select_feats)
 
 
 
 
 
+```
+
+```{r,results="show"}
+
+downSample(x, y, list = FALSE, yname = "Class")
 
 ```
 
