@@ -31,5 +31,9 @@ impact customer churn.
 7. Does the monthly revenue average differ for different occupations?
 
 
+## Modeling Methods: 
+Logistic Regression, KNN, Decision Tree, Naïve Bayes, Random Forest
+
+
 #### Link to our dataset:
 https://www.kaggle.com/datasets/pranavchandaliya/telcom-churn-dataset

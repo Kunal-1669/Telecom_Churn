@@ -1,0 +1,419 @@
+---
+title: "Feature_selection"
+output: html_document
+date: "2022-12-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r init, include=F}
+# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
+# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
+# Once installed, load the library.
+#library(ezids)
+
+```
+
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+# knitr::opts_chunk$set(include = F)
+# knitr::opts_chunk$set(echo = TRUE)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+```{r,results="show"}
+Telecom_Data <- data.frame(read.csv("Telecom Data.csv"))
+ncol(Telecom_Data)
+nrow(Telecom_Data)
+```
+
+```{r,results=T}
+str(Telecom_Data)
+```
+
+
+
+
+```{r,results="show"}
+library(dplyr)
+library(tidyr)
+## Checking the null values in the dataset
+#summary(Telecom_Data)
+#is.null(Telecom_Data)
+null_values<-sapply(Telecom_Data, function(x) sum(is.na(x)))
+null_values
+```
+
+```{r, results= "show"}
+##Creation of new variables for our analysis
+Telecom_Data$perc_recurrent_charge <- (Telecom_Data$TotalRecurringCharge /Telecom_Data$MonthlyRevenue) * 100
+
+Telecom_Data$perc_overage_minute <- (Telecom_Data$OverageMinutes / Telecom_Data$MonthlyMinutes) * 100
+
+str(Telecom_Data)
+
+```
+
+Creating a subset for churned and retained customers for deep dive analysis and checking the summary of the divided data to analyze the trend.
+
+```{r,results="show"}
+
+library(dplyr)
+
+
+Telecom_Data_yes = filter(Telecom_Data, Churn == "Yes")
+
+Telecom_Data_no = filter(Telecom_Data, Churn == "No")
+
+summary(Telecom_Data_yes)
+
+
+summary(Telecom_Data_no)
+```
+
+
+#Feature selection
+# Chi squared test for categorical variables
+
+#Creating a contingency table for IncomeGroup and Churn
+
+```{r IncomeGroup,results=T}
+IncomeGroup_Churn<-table(Telecom_Data$IncomeGroup,Telecom_Data$Churn)
+str(IncomeGroup_Churn)
+```
+
+```{r IncomeGroup,results=T}
+chisq_test=chisq.test(IncomeGroup_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for Service Area and Churn
+
+```{r ServiceArea,results=T}
+Service_Area_Churn<-table(Telecom_Data$ServiceArea,Telecom_Data$Churn)
+str(Service_Area_Churn)
+```
+
+```{r ServiceArea,results=T}
+chisq_test=chisq.test(Service_Area_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for ChildrenInHH and Churn
+
+```{r ChildrenInHH,results=T}
+ChildrenInHH_Churn<-table(Telecom_Data$ChildrenInHH,Telecom_Data$Churn)
+str(ChildrenInHH_Churn)
+```
+
+```{r ChildrenInHH,results=T}
+chisq_test=chisq.test(ChildrenInHH_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for HandsetWebCapable and Churn
+
+```{r HandsetWebCapable,results=T}
+HandsetWebCapable_Churn<-table(Telecom_Data$HandsetWebCapable,Telecom_Data$Churn)
+str(HandsetWebCapable_Churn)
+```
+
+```{r HandsetWebCapable,results=T}
+chisq_test=chisq.test(HandsetWebCapable_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for TruckOwner and Churn
+
+```{r TruckOwner,results=T}
+TruckOwner_Churn<-table(Telecom_Data$TruckOwner,Telecom_Data$Churn)
+str(TruckOwner_Churn)
+```
+
+```{r TruckOwner,results=T}
+chisq_test=chisq.test(TruckOwner_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for RVOwner and Churn
+
+```{r RVOwner,results=T}
+RVOwner_Churn<-table(Telecom_Data$RVOwner,Telecom_Data$Churn)
+str(RVOwner_Churn)
+```
+
+```{r RVOwner,results=T}
+chisq_test=chisq.test(RVOwner_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for Homeownership and Churn
+
+```{r Homeownership,results=T}
+Homeownership_Churn<-table(Telecom_Data$Homeownership,Telecom_Data$Churn)
+str(Homeownership_Churn)
+```
+
+```{r Homeownership,results=T}
+chisq_test=chisq.test(Homeownership_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for BuysViaMailOrder and Churn
+
+```{r BuysViaMailOrder,results=T}
+BuysViaMailOrder_Churn<-table(Telecom_Data$BuysViaMailOrder,Telecom_Data$Churn)
+str(BuysViaMailOrder_Churn)
+```
+
+```{r BuysViaMailOrder,results=T}
+chisq_test=chisq.test(BuysViaMailOrder_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for RespondsToMailOffers and Churn
+
+```{r RespondsToMailOffers,results=T}
+RespondsToMailOffers_Churn<-table(Telecom_Data$RespondsToMailOffers,Telecom_Data$Churn)
+str(RespondsToMailOffers_Churn)
+```
+
+```{r RespondsToMailOffers,results=T}
+chisq_test=chisq.test(RespondsToMailOffers_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for OptOutMailings and Churn
+
+```{r OptOutMailings,results=T}
+OptOutMailings_Churn<-table(Telecom_Data$OptOutMailings,Telecom_Data$Churn)
+str(OptOutMailings_Churn)
+```
+
+```{r OptOutMailings,results=T}
+chisq_test=chisq.test(OptOutMailings_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for NonUSTravel and Churn
+
+```{r NonUSTravel,results=T}
+NonUSTravel_Churn<-table(Telecom_Data$NonUSTravel,Telecom_Data$Churn)
+str(NonUSTravel_Churn)
+```
+
+```{r NonUSTravel,results=T}
+chisq_test=chisq.test(NonUSTravel_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for OwnsComputer and Churn
+
+```{r OwnsComputer,results=T}
+OwnsComputer_Churn<-table(Telecom_Data$OwnsComputer,Telecom_Data$Churn)
+str(OwnsComputer_Churn)
+```
+
+```{r OwnsComputer,results=T}
+chisq_test=chisq.test(OwnsComputer_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for HasCreditCard and Churn
+
+```{r HasCreditCard,results=T}
+HasCreditCard_Churn<-table(Telecom_Data$HasCreditCard,Telecom_Data$Churn)
+str(HasCreditCard_Churn)
+```
+
+```{r HasCreditCard,results=T}
+chisq_test=chisq.test(HasCreditCard_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for NewCellphoneUser and Churn
+
+```{r NewCellphoneUser,results=T}
+NewCellphoneUser_Churn<-table(Telecom_Data$NewCellphoneUser,Telecom_Data$Churn)
+str(HasCreditCard_Churn)
+```
+
+```{r NewCellphoneUser,results=T}
+chisq_test=chisq.test(NewCellphoneUser_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for NotNewCellphoneUser and Churn
+
+```{r NotNewCellphoneUser,results=T}
+NotNewCellphoneUser_Churn<-table(Telecom_Data$NotNewCellphoneUser,Telecom_Data$Churn)
+str(NotNewCellphoneUser_Churn)
+```
+
+```{r NewCellphoneUser,results=T}
+chisq_test=chisq.test(NotNewCellphoneUser_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for OwnsMotorcycle and Churn
+
+```{r OwnsMotorcycle,results=T}
+OwnsMotorcycle_Churn<-table(Telecom_Data$OwnsMotorcycle,Telecom_Data$Churn)
+str(OwnsMotorcycle_Churn)
+```
+
+```{r OwnsMotorcycle,results=T}
+chisq_test=chisq.test(OwnsMotorcycle_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for HandsetPrice and Churn
+
+```{r HandsetPrice,results=T}
+HandsetPrice_Churn<-table(Telecom_Data$HandsetPrice,Telecom_Data$Churn)
+str(HandsetPrice_Churn)
+```
+
+```{r HandsetPrice,results=T}
+chisq_test=chisq.test(HandsetPrice_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+
+#Creating a contingency table for MadeCallToRetentionTeam  and Churn
+
+```{r MadeCallToRetentionTeam ,results=T}
+MadeCallToRetentionTeam_Churn<-table(Telecom_Data$MadeCallToRetentionTeam,Telecom_Data$Churn)
+str(MadeCallToRetentionTeam_Churn)
+```
+
+```{r MadeCallToRetentionTeam,results=T}
+chisq_test=chisq.test(MadeCallToRetentionTeam_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+
+
+#Creating a contingency table for CreditRating  and Churn
+
+```{r CreditRating ,results=T}
+CreditRating_Churn<-table(Telecom_Data$CreditRating,Telecom_Data$Churn)
+str(CreditRating_Churn)
+```
+
+```{r CreditRating,results=T}
+chisq_test=chisq.test(CreditRating_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+
+#Creating a contingency table for PrizmCode  and Churn
+
+```{r PrizmCode ,results=T}
+PrizmCode_Churn<-table(Telecom_Data$PrizmCode,Telecom_Data$Churn)
+str(PrizmCode_Churn)
+```
+
+```{r PrizmCode,results=T}
+chisq_test=chisq.test(PrizmCode_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for Occupation  and Churn
+
+```{r Occupation ,results=T}
+Occupation_Churn<-table(Telecom_Data$Occupation,Telecom_Data$Churn)
+str(Occupation_Churn)
+```
+
+```{r Occupation,results=T}
+chisq_test=chisq.test(Occupation_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for MaritalStatus  and Churn
+
+```{r MaritalStatus ,results=T}
+MaritalStatus_Churn<-table(Telecom_Data$MaritalStatus,Telecom_Data$Churn)
+str(MaritalStatus_Churn)
+```
+
+```{r MaritalStatus,results=T}
+chisq_test=chisq.test(MaritalStatus_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```

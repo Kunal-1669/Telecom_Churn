@@ -1,0 +1,693 @@
+---
+# This is the YAML header/metadata for the document
+title: "Customer Churn Analysis code & Technical Analysis"
+author: "Pranav Chandaliya, Vaishnavi Nagarajaiah, Sunisha Harish, Kunal Inglunkar, Pooja Chandrashekara"
+
+output:
+  html_document:
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=F}
+# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
+# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
+# Once installed, load the library.
+library(ezids)
+
+```
+
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+# knitr::opts_chunk$set(include = F)
+# knitr::opts_chunk$set(echo = TRUE)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+
+Loading dataset 
+```{r,results="show"}
+Telecom_Data <- data.frame(read.csv("Telecom Data.csv"))
+ncol(Telecom_Data)
+nrow(Telecom_Data)
+```
+There are total 58 Columns and 51,047 Rows
+
+Converting few columns to factor
+```{r,results="show"}
+Telecom_Data$Churn <- factor(Telecom_Data$Churn)
+Telecom_Data$CreditRating <- factor(Telecom_Data$CreditRating) 
+Telecom_Data$Occupation <- factor(Telecom_Data$Occupation)
+
+```
+
+
+Let's check for null values
+```{r,results="show"}
+library(dplyr)
+library(tidyr)
+## Checking the null values in the dataset
+#summary(Telecom_Data)
+#is.null(Telecom_Data)
+null_values<-sapply(Telecom_Data, function(x) sum(is.na(x)))
+null_values
+```
+Few columns have null values but the count is less,
+
+
+Lets Create New Variables which will help in analysis 
+```{r, results= "show"}
+##Creation of new variables for our analysis
+Telecom_Data$perc_recurrent_charge <- (Telecom_Data$TotalRecurringCharge /Telecom_Data$MonthlyRevenue) * 100
+
+Telecom_Data$perc_overage_minute <- (Telecom_Data$OverageMinutes / Telecom_Data$MonthlyMinutes) * 100
+
+str(Telecom_Data)
+
+```
+
+Lets calculate churn rate 
+
+```{r,results="show"}
+## Getting Churn counts 
+churn_counts<- dplyr::count(Telecom_Data,Churn , sort = TRUE)
+
+```
+
+Lets plot the churn rate using pie chart
+
+```{r,results="show"}
+library("ggplot2")
+ggplot(data = churn_counts, aes(x = "", y = n, fill = Churn)) + 
+  geom_bar(stat = "identity") + 
+  coord_polar("y")
+
+
+```
+
+Trying out plotly for pie chart for more interactive graphs 
+
+```{r,results="show"}
+
+library(plotly)
+colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+fig <- plot_ly(type='pie', labels=churn_counts$Churn, values=churn_counts$n, 
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1)))
+fig
+
+
+```
+
+Subsetting data for in depth analysis on the basis of churn
+and checking the summary of the divided data to analyze the trend
+
+```{r,results="show"}
+
+library(dplyr)
+
+
+Telecom_Data_yes = filter(Telecom_Data, Churn == "Yes")
+
+Telecom_Data_no = filter(Telecom_Data, Churn == "No")
+
+summary(Telecom_Data_yes)
+
+
+summary(Telecom_Data_no)
+```
+
+
+Data Classification
+
+```{r,results="show"}
+
+feat_typ_counts <- data.frame(read.csv("Feat_type_counts.csv"))
+#install.packages("plotrix")
+library(plotrix)
+
+library("ggplot2")
+#pie(feat_typ_counts$Counts, feat_typ_counts$Variable.Type)
+
+piepercent<- round(100 * feat_typ_counts$Counts / sum(feat_typ_counts$Counts), 1)
+
+
+feat_typ_counts$fraction <- feat_typ_counts$Counts / sum(feat_typ_counts$Counts)
+
+# Compute the cumulative percentages (top of each rectangle)
+feat_typ_counts$ymax <- cumsum(feat_typ_counts$fraction)
+
+# Compute the bottom of each rectangle
+feat_typ_counts$ymin <- c(0, head(feat_typ_counts$ymax, n=-1))
+
+# Compute label position
+feat_typ_counts$labelPosition <- (feat_typ_counts$ymax + feat_typ_counts$ymin) / 2
+
+# Compute a good label
+feat_typ_counts$label <- paste0(feat_typ_counts$Variable.Type, "\n Count: ", feat_typ_counts$Counts)
+
+
+ggplot(feat_typ_counts, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Variable.Type)) +
+  geom_rect() +
+  geom_label( x=3.5, aes(y=labelPosition, label=label), size=2) +
+  scale_fill_brewer(palette=4) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+
+
+
+
+
+```
+
+Getting summary of the data
+```{r,results="show"}
+
+
+xkablesummary(Telecom_Data)
+
+```
+
+Box plot of the Monnthly Minutes
+```{r,results="show"}
+boxplot(Telecom_Data$MonthlyMinutes,
+main = "Monthly Minutes of Customers",
+xlab = "Monthly Min",
+ylab = "Frequency",
+col = "orange",
+border = "brown",
+horizontal = TRUE,
+notch = TRUE
+)
+
+
+```
+
+##Current Headset use in days
+```{r,results="show"}
+
+plot_ly(Telecom_Data, y= Telecom_Data$CurrentEquipmentDays, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+```
+
+
+Boxplot of Total Recurring Charge
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$TotalRecurringCharge, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+Box plot of Month in Service
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$MonthsInService, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+Box plot of the Percent change in recurrent charge
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$perc_recurrent_charge, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+Box plot of Percent change in Minutes
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$PercChangeMinutes, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+Box plot of Percent change in Revenues
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$PercChangeRevenues, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+
+
+Distribution of the Montly Revenue
+```{r,results="show"}
+library(ggplot2)  
+library(plotly)
+
+set.seed(1)    
+
+gg <- ggplot(Telecom_Data,aes(x = MonthlyRevenue, color = 'density')) +  
+  geom_histogram(aes(y = ..density..), bins = 7,  fill = '#67B7D1', alpha = 0.5) +  
+  geom_density(color = '#67B7D1') +  
+  geom_rug(color = '#67B7D1') + 
+  ylab("") + 
+  xlab("")  + theme(legend.title=element_blank()) +
+  scale_color_manual(values = c('density' = '#67B7D1'))
+
+
+ggplotly(gg)%>% 
+  layout(plot_bgcolor='#e5ecf6',   
+             xaxis = list(   
+               title='Time', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff'),   
+             yaxis = list(   
+               title='Monthly Revenue', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff')) 
+
+```
+Distribution of Monthly Minutes
+```{r,results="show"}
+library(ggplot2)  
+library(plotly)
+
+set.seed(1)    
+
+gg <- ggplot(Telecom_Data,aes(x = MonthlyMinutes, color = 'density')) +  
+  geom_histogram(aes(y = ..density..), bins = 7,  fill = '#67B7D1', alpha = 0.5) +  
+  geom_density(color = '#67B7D1') +  
+  geom_rug(color = '#67B7D1') + 
+  ylab("") + 
+  xlab("")  + theme(legend.title=element_blank()) +
+  scale_color_manual(values = c('density' = '#67B7D1'))
+
+
+ggplotly(gg)%>% 
+  layout(plot_bgcolor='#e5ecf6',   
+             xaxis = list(   
+               title='Monthly Minutes ', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff'),   
+             yaxis = list(   
+               title='Frequency', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff')) 
+
+
+
+
+```
+
+
+```{r,results="show"}
+qqnorm(Telecom_Data$MonthlyMinutes)                        # QQplot 
+
+
+qqline(Telecom_Data$MonthlyMinutes, col = "red") 
+#install.packages("car")
+#library("car")
+#qqPlot(Telecom_Data$MonthlyMinutes)
+
+```
+```{r,results="show"}
+library("plotly")
+#plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1, color = Telecom_Data$Churn, type = "box") 
+         #layout(boxmode = "group", 
+        # xaxis = list(title=''), 
+        # yaxis = list(title='Frequency'))
+
+
+```
+
+How travel Affects churn rate
+```{r,results="show"}
+churn_count<-nrow(Telecom_Data$Churn)
+ggplot(Telecom_Data,aes(x = NonUSTravel,fill=Churn )) +
+geom_bar( position = "stack")+ggtitle("How Travel affects churn")
+```
+Do number of dropped call have affect on churn 
+```{r}
+ggplot(Telecom_Data, aes(x=DroppedCalls, fill=Churn)) + geom_histogram(position='identity',alpha=0.6)
+```
+Income group of customers
+```{r}
+ggplot(Telecom_Data,aes(x=IncomeGroup, fill=Churn))+geom_histogram(position='identity',alpha=0.6)
+```
+How many customer opt out of mailing list
+```{r}
+ggplot(Telecom_Data,aes(x=OptOutMailings,fill=Churn))+geom_bar(position='identity',alpha=0.6)
+```
+
+How does credit rating have an impact on Churn?
+
+Boxplot for Credit Rating using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Telecom_Data, aes(y=CreditRating)) + geom_boxplot( colour="orange", fill="black") + ggtitle("Credit Rating  using `ggplot`")
+```
+
+Subsetting Churned and Retained data
+
+```{r, echo=T, results=T}
+Churned <- subset(Telecom_Data, Churn=="Yes")
+Retained <- subset(Telecom_Data, Churn=="No")
+str(Churned)
+str(Retained)
+```
+
+Barplot for Credit Rating of Churned Data vs Count using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
+```
+
+Barplot for Credit Rating of Retained Data vs Count using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Retained, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Retained Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
+```
+
+
+Histogram for representing Age of Customers in Telecom Data
+
+```{r, echo=T, results=T}
+library(plotly)
+ggplot(Telecom_Data, aes(x=AgeHH1))+ geom_histogram(color="aquamarine4",fill = "aquamarine3",alpha=0.6, bins=30) + labs(x="Age of Customers", y="Frequency", 
+title="Histogram of Customer Age") +  theme_classic()
+```
+
+Filtering Age of Primary Users 
+
+```{r, echo=T, results=T}
+library(dplyr)
+AgeFiltered = filter(Telecom_Data, AgeHH1== 0)
+nrow(AgeFiltered)
+(13917/nrow(Telecom_Data))*100
+```
+
+Boxplot Representing Customer Age Group in Telecom Data using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Telecom_Data, aes(y=AgeHH1)) + geom_boxplot( colour="maroon", fill="aquamarine3",alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
+```
+
+Boxplot Representing Customer Age Group in Telecom Data using plotly
+
+```{r, echo=T, results=T}
+library(plotly)
+plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1,type = "box", color = Telecom_Data$Churn) %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+```
+
+Creating a subset for Churned and retained customers
+
+```{r,results=T}
+#Created a subset for Churned and Retained data
+
+Churned <- subset(Telecom_Data, Churn=="Yes")
+Retained <- subset(Telecom_Data, Churn=="No")
+```
+
+Analyzing the churn rate with respect to months in service
+
+```{r Histogram,results=T}
+
+# Histogram for relationship between months in service and Churn
+ggplot(Churned, aes(x=MonthsInService, fill=Churn)) + geom_histogram(position='identity',alpha=0.6,color='aquamarine4',fill='aquamarine3')+xlab("Service period for churned customers (In Months) ")+ylab("Frequency") + theme_classic()+ggtitle("Service Months Distribution for Churned customers")
+
+Mean_MonthsInService=mean(Churned$MonthsInService)
+print(paste("Mean of service months of the customer:",Mean_MonthsInService))
+
+Median_MonthsInService=median(Churned$MonthsInService)
+print(paste("Median of service months of the customer:",Median_MonthsInService))
+```
+
+Analyzing Prizm Codes effect on Churn rate
+
+```{r PrizmCode,results=T}
+
+# Barplot for Prizm Code effect on Churn
+ggplot(Telecom_Data, aes(x=PrizmCode, fill = Churn)) +geom_bar(position = "dodge2")+ggtitle("Churn distribution for Prizm code")
+
+#install.packages("plotly")
+library(plotly)
+colors <- c('rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+fig <- plot_ly(type='pie', labels=Churned$PrizmCode, values=Churned$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = "Set1"),
+                      line = list(color = '#FFFFFF', width = 1))
+fig
+
+fig_1 <- plot_ly(type='pie', labels=Retained$PrizmCode, values=Retained$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = "Set1"),
+                      line = list(color = '#FFFFFF', width = 1))
+fig_1
+
+```
+
+Checking if occupation has any effect on Churn
+
+```{r Occupation,results=T}
+
+#Frequency distribution of Occupation
+
+ggplot(Telecom_Data,aes(x=Occupation)) + geom_bar(fill = "bisque") + ggtitle("Frequency distribution of occupation") 
+
+#Creating a contingency table for Occupation and Churn
+Occupation_Churn<-table(Telecom_Data$Occupation,Telecom_Data$Churn)
+str(Occupation_Churn)
+
+#Performing Chi Square Test to check if occupation is independent of churn
+
+chisq_test=chisq.test(Occupation_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+p value is greater than 0.05. Hence we will be accepting the null hypothesis, H0.
+Therefore we can say that occupation is independent of churn.
+
+```{r Bivariate-Analysis, echo=T, results=T}
+Telecom_Data <- read.csv("Telecom Data.csv")
+typeof(Telecom_Data)
+head(Telecom_Data)
+```
+Correlation Analysis of Monthly Revenue and Overage Minutes for churned customers. 
+```{r Correlation Analysis, echo=T, results=T}
+churndata <- subset(Telecom_Data, Telecom_Data$Churn == "Yes")
+head(churndata)
+nrow(churndata)
+sum(is.na(churndata$MonthlyRevenue))
+sum(is.na(churndata$OverageMinutes))
+
+```
+We can see there are 70 NA values in monthly revenue and overageminutes columns when churn is yes
+Lets remove those NA values
+
+
+```{r, echo=T, results=T}
+churndata2 <- na.omit(churndata)
+head(churndata2)
+nrow(churndata2)
+sum(is.na(churndata2$MonthlyRevenue))
+sum(is.na(churndata2$OverageMinutes))
+```
+
+
+We have removed all the null values.
+
+
+```{r,echo=T,results=T}
+cor.test(churndata2$MonthlyRevenue, churndata2$OverageMinutes, method='spearman')
+```
+
+
+The output is 0.5911 which is approximately 0.6. 
+As the sign is positive, we can say that monthly revenue and overage minutes vary postively when there is churn. That is, the as the overage minutes increases, monthly revenue also increases. 
+
+
+```{r, echo=T, results=T}
+#Plot with statistical results
+library(ggplot2)
+ggplot(data = churndata2) + 
+  geom_smooth(mapping = aes(x = OverageMinutes, y = MonthlyRevenue, color="Brown")) + theme_classic()+
+xlab("Overage minutes used by the customer") + ylab("Monthly revenue of the Telecom company ") 
+```
+From the graph we can see that as Overage Minutes increased, Monthly revenue also increased. 
+
+```{r, echo=T, results=T}
+#install.packages("ggpubr")
+library(ggpubr)
+ggscatter(data = churndata2, x = "OverageMinutes", y = "MonthlyRevenue",
+          conf.int = TRUE, color="brown", xlab="Overage Minutes used by customer", ylab="Monthly Revenue of the Telecom company", title="Scatter plot of Overage Minutes vs Monthly Revenue for churned customers")
+```
+The scatter graph in the aforementioned section illustrates the positive correlation between customer overage minutes consumed and the telecom sector's monthly income for customers who churn.
+
+Now lets plot when there is no churn, that is when there is retention of customers. 
+
+```{r, echo=T, results=T}
+retentiondata <- subset(Telecom_Data, Telecom_Data$Churn == "No")
+head(retentiondata)
+nrow(retentiondata)
+sum(is.na(retentiondata$MonthlyRevenue))
+sum(is.na(retentiondata$OverageMinutes))
+
+```
+
+We can see there are 86 NA values in monthly revenue and overageminutes columns when there is no churn.
+Lets remove those NA values
+
+```{r, echo=T, results=T}
+retentiondata2 <- na.omit(retentiondata)
+head(retentiondata2)
+nrow(retentiondata2)
+sum(is.na(retentiondata2$MonthlyRevenue))
+sum(is.na(retentiondata2$OverageMinutes))
+```
+
+
+We have removed all the null values.
+Now lets do correlation
+
+
+```{r, echo=T, results=T}
+cor.test(retentiondata2$MonthlyRevenue, retentiondata2$OverageMinutes, method='spearman')
+```
+
+Even when there is retention the output is 0.56, we can say the that Monthly revenue varies postively as overage minutes varies. 
+
+
+```{r, echo=T, results=T}
+
+#Plot with statistical results
+
+library(ggplot2)
+ggplot(data = retentiondata2)+
+  geom_smooth(mapping = aes(x = OverageMinutes, y = MonthlyRevenue), color="dark green" ) + theme_classic() + xlab("Overage minutes used by the customer") + ylab("Monthly revenue of the Telecom company ")
+```
+
+
+From the graph we can see that as Overage Minutes increases, Monthly revenue also increases. 
+
+
+```{r, echo=T, results=T}
+#install.packages("ggpubr")
+library(ggpubr)
+ggscatter(data = retentiondata2, x = "OverageMinutes", y = "MonthlyRevenue",
+          conf.int = TRUE, color="dark green", xlab="Overage Minutes used by customer", ylab="Monthly Revenue of the Telecom company", title="Scatter plot of Overage Minutes vs Monthly Revenue for retention customers")
+```
+
+The graph shows that even for customers who are still with the company, monthly revenue rises as Overage Minutes rise.
+Also, we can observe that outliers are more for churned customers compared to non-churn customers
+
+
+```{r, echo=T, results=T}
+datacorr <- Telecom_Data[ , c("MonthlyRevenue","MonthlyMinutes", "TotalRecurringCharge","CustomerCareCalls","ThreewayCalls","ReceivedCalls","OutboundCalls","MonthsInService","HandsetPrice","CreditRating")]   
+head(datacorr)
+nrow(datacorr)
+sum(is.na(datacorr))
+```
+There are 468 NA values in the subsetted dataset.
+
+```{r, echo=T, results=T}
+datacorr2 <- na.omit(datacorr)
+nrow(datacorr2)
+sum(is.na(datacorr2))
+```
+
+After removing the NA values, we are left out with 50891 rows.
+
+
+Next, we have used few numerical factors, including months of service, outbound calls, received calls, three-way calls, customer care calls, total recurring calls, and monthly minutes, and we've conducted correlation statistical studies to look at how they relate to one another using correlation matrix. 
+
+
+
+```{r, echo=T, results=T}
+# load package
+#install.packages("ggstatsplot")
+#install.packages("ggcorrplot")
+
+library(ggstatsplot)
+library(ggcorrplot)
+library(corrplot)
+
+# correlogram
+ggstatsplot::ggcorrmat(
+data = datacorr2,
+type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
+colors = c("darkred", "white", "steelblue"), 
+title = "Correlation matrix"
+)
+
+```
+
+The above correlation graph leads us to the following conclusions:
+
+1. Monthly minutes consumed by the client and monthly revenue of the telecom operator are highly associated.
+2. There is a significant probability that customers will receive calls from customer service.
+3. The number of months a consumer stays with a service won't significantly alter its monthly revenue.
+4. The customer service calls made by the telecom sector have no impact on the number of months the clients have left on their subscriptions.
+
+## Does the monthly revenue average differ for different occupations?
+
+H0: Average monthly revenue is similar across different occupations
+
+H1: Average monthly revenue is different across different occupations
+
+```{r}
+
+
+## Anova Results 
+one.way <- aov(MonthlyMinutes ~ Occupation, data = Telecom_Data)
+#summary(one.way)
+xkabledply(one.way, title = "ANOVA result summary")
+
+```
+
+P values < 0.05, Which means null hypothesis is rejected 
+
+Monthly revenue average differ for occupations
+
+
+
+
