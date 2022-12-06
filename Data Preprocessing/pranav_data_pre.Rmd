@@ -148,13 +148,7 @@ sum(is.na(Telecom_Data))
 
 ```
 
-```{r,results="show"}
 
-
-#write.csv(Telecom_Data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\cleaned_telcom_data.csv", row.names=FALSE)
-
-
-``` 
 
 ```{r,results="show"}
 library("dplyr")
@@ -216,7 +210,8 @@ cat_cols <-c("ChildrenInHH",'HandsetRefurbished',
 
 # Load the library
 library(fastDummies)
-dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dummy = TRUE,remove_selected_columns=TRUE)  
+prepro_data<-dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dummy = TRUE,remove_selected_columns=TRUE)  
+
 
 
 
@@ -225,7 +220,17 @@ dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dummy = TRUE,rem
 
 ```
 
+```{r,results="show"}
+
+
+write.csv(prepro_data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\prepro_telcom_data.csv", row.names=FALSE)
+
+
+``` 
+
+```{r,results="show"}
 
 
 
+```
 
