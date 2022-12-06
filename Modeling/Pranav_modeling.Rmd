@@ -1,0 +1,89 @@
+---
+# This is the YAML header/metadata for the document
+title: "Customer Churn Analysis code & Technical Analysis"
+author: "Pranav Chandaliya"
+
+output:
+  html_document:
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=F}
+# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
+# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
+# Once installed, load the library.
+library(ezids)
+
+```
+
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+# knitr::opts_chunk$set(include = F)
+# knitr::opts_chunk$set(echo = TRUE)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+```{r,results="show"}
+train_smote <- data.frame(read.csv("D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv"))
+ncol(train_smote)
+nrow(train_smote)
+
+test <- data.frame(read.csv("D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test.csv"))
+ncol(test)
+nrow(test)
+
+str(train_smote)
+```
+```{r,results="show"}
+# Loading package
+library(caTools)
+library(randomForest)
+
+x_train<-subset(train_smote, select = -c(class))
+y_train<-train_smote$class
+
+x_test <- subset(test, select = -c(Churn))
+y_test <-test$Churn
+# Fitting Random Forest to the train dataset
+set.seed(120)  # Setting seed
+classifier_RF = randomForest(x = x_train,
+                             y = y_train,
+                             ntree = 100)
+  
+classifier_RF
+  
+# Predicting the Test set results
+y_pred = predict(classifier_RF, newdata = x_test)
+  
+# Confusion Matrix
+confusion_mtx = table(y_test, y_pred)
+confusion_mtx
+  
+# Plotting model
+plot(classifier_RF)
+  
+# Importance plot
+importance(classifier_RF)
+  
+# Variable importance plot
+varImpPlot(classifier_RF)
+
+
+```
+
+
+
