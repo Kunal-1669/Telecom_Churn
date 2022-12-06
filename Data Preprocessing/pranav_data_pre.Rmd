@@ -223,7 +223,7 @@ prepro_data<-dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dum
 ```{r,results="show"}
 
 
-#write.csv(prepro_data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\prepro_telcom_data.csv", row.names=FALSE)
+write.csv(prepro_data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\prepro_telcom_data.csv", row.names=FALSE)
 
 
 ``` 
@@ -262,7 +262,10 @@ smote = SMOTE(x, y,6)
 train_smote = smote$data
 str(train_smote)
 
+train_smote
+write.csv(train_smote, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv", row.names=FALSE)
 
+write.csv(test, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test.csv", row.names=FALSE)
 
 ```
 
