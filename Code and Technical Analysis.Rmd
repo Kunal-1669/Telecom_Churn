@@ -19,7 +19,7 @@ output:
 # The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
 # Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
 # Once installed, load the library.
-library(ezids)
+#library(ezids)
 
 ```
 
@@ -521,6 +521,9 @@ print(paste("The p value is:",p_value))
 
 p value is greater than 0.05. Hence we will be accepting the null hypothesis, H0.
 Therefore we can say that occupation is independent of churn.
+
+
+
 
 ## Does the monthly revenue average differ for different occupations?
 
