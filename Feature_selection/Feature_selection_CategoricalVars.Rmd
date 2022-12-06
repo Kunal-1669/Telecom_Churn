@@ -417,3 +417,29 @@ chisq_test
 p_value=chisq_test$p.value
 print(paste("The p value is:",p_value))
 ```
+
+#variables for which the p value is greater than 0.05
+Service_Area
+HandsetWebCapable
+Marital Status
+Occupation
+Credit Rating
+MadeCallToRetentionTeam 
+HandsetPrice
+OwnsMotorcycle
+NotNewCellphoneUser
+NewCellphoneUser
+OwnsComputer
+NonUSTravel
+OptOutMailings
+RespondsToMailOffers
+BuysViaMailOrder
+RVOwner
+TruckOwner
+HandsetWebCapable
+
+#variables for which the p value is lesser than 0.05
+IncomeGroup  The p value is: 0.000208431035771752
+ChildrenInHH  The p value is: 0.0316348562178264
+Homeownership The p value is: 0.00303998368986854
+PrizmCode The p value is: 0.000261117207513819
