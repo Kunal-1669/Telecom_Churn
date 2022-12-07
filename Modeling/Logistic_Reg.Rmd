@@ -10,20 +10,24 @@ knitr::opts_chunk$set(echo = TRUE)
 library(ezids)
 ```
 
+## Logit Model with Under Sampling
+
 ```{r data,results=T}
 train_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
 test_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\test_under.csv"))
 str(train_data)
+str(test_data)
 summary(train_data)
 ```
 
-## Logit Model
+## Model building
 
 ```{r logit,results=T}
 model=glm(Churn ~ ., train_data, family = "binomial")
 pred=predict(model,newdata=test_data)
 summary(model)
 ```
+
 
 ## Confusion matrix
 
@@ -42,20 +46,49 @@ Accuracy
 Precision = TP/(TP + FP)
 Precision
 
-Recall_rate = TP/(TP + FN)
-Recall_rate
+Recall = TP/(TP + FN)
+Recall
 
 ```
 
-## AUC ROC Curve
+## Logit Model with SMOTE
 
-```{r roc_auc,results=T}
-loadPkg("pROC")
-prediction = predict(model,test_data,type = "response")
-train_data$prediction = prediction
-h1 <- roc(Churn~prediction, data = train_data)
-auc(h1)
-plot(h1)
+```{r data,results=T}
+train_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv"))
+test_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\test.csv"))
+str(train_data)
+str(test_data)
+summary(train_data)
+```
+
+## Model building
+
+```{r logit,results=T}
+model=glm(class ~ ., train_data, family = "binomial")
+pred=predict(model,newdata=test_data)
+summary(model)
+```
+
+
+## Confusion matrix
+
+```{r Confusion_Matrix,results=T}
+loadPkg("regclass")
+confusion_matrix=table(test_data$Churn,pred>=0.5)
+xkabledply(confusion_matrix)
+TP=confusion_matrix[2,2]
+FP=confusion_matrix[2,1]
+TN=confusion_matrix[1,1]
+FN=confusion_matrix[1,2]
+
+Accuracy=(TP+TN)/(TP+FP+TN+FN)
+Accuracy
+
+Precision = TP/(TP + FP)
+Precision
+
+Recall = TP/(TP + FN)
+Recall
 
 ```
 
