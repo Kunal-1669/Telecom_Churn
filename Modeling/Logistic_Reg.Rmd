@@ -8,9 +8,41 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(ezids)
+library(caTools)
+library(caret)
 ```
 
-## Logit Model with Under Sampling
+## Logit Model with Over Sampling (SMOTE)
+
+```{r data,results=T}
+train_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv"))
+test_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\test_smote.csv"))
+train_data$class=as.factor(train_data$class)
+test_data$class=as.factor(test_data$class)
+str(train_data)
+str(test_data)
+```
+
+## Model building
+
+```{r logit,results=T}
+model=glm(class ~ ., train_data, family = "binomial")
+pred=predict(model,newdata=test_data)
+pred[pred >= 0.5]=1         
+pred[pred < 0.5 ]=0
+pred=as.factor(pred)
+summary(model)
+```
+
+## Confusion matrix
+
+```{r logit,results=T}
+confusion_mtx = confusionMatrix(pred,test_data$class,mode = "everything")
+print(confusion_mtx)
+```
+
+
+## Logit Model with under sampling
 
 ```{r data,results=T}
 train_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
@@ -23,73 +55,20 @@ summary(train_data)
 ## Model building
 
 ```{r logit,results=T}
-model=glm(Churn ~ ., train_data, family = "binomial")
-pred=predict(model,newdata=test_data)
+model=glm(class ~ ., train_data, family = "binomial")
+pred=predict(model,newdata=test_data,type="response")
+pred[pred >= 0.5]=1         
+pred[pred < 0.5 ]=0
+pred
 summary(model)
 ```
 
 
 ## Confusion matrix
-
-```{r Confusion_Matrix,results=T}
-loadPkg("regclass")
-confusion_matrix=table(test_data$Churn,pred>=0.5)
-xkabledply(confusion_matrix)
-TP=confusion_matrix[2,2]
-FP=confusion_matrix[2,1]
-TN=confusion_matrix[1,1]
-FN=confusion_matrix[1,2]
-
-Accuracy=(TP+TN)/(TP+FP+TN+FN)
-Accuracy
-
-Precision = TP/(TP + FP)
-Precision
-
-Recall = TP/(TP + FN)
-Recall
-
-```
-
-## Logit Model with SMOTE
-
-```{r data,results=T}
-train_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv"))
-test_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\test.csv"))
-str(train_data)
-str(test_data)
-summary(train_data)
-```
-
-## Model building
 
 ```{r logit,results=T}
-model=glm(class ~ ., train_data, family = "binomial")
-pred=predict(model,newdata=test_data)
-summary(model)
-```
-
-
-## Confusion matrix
-
-```{r Confusion_Matrix,results=T}
-loadPkg("regclass")
-confusion_matrix=table(test_data$Churn,pred>=0.5)
-xkabledply(confusion_matrix)
-TP=confusion_matrix[2,2]
-FP=confusion_matrix[2,1]
-TN=confusion_matrix[1,1]
-FN=confusion_matrix[1,2]
-
-Accuracy=(TP+TN)/(TP+FP+TN+FN)
-Accuracy
-
-Precision = TP/(TP + FP)
-Precision
-
-Recall = TP/(TP + FN)
-Recall
-
+confusion_mtx = confusionMatrix(pred,test_data$class,mode = "everything")
+print(confusion_mtx)
 ```
 
 
