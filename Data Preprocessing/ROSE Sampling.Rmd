@@ -1,0 +1,77 @@
+---
+title: "Logistic Regression"
+author: "Sunisha Harish"
+date: "2022-12-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ezids)
+install.packages("ROSE")
+library(ROSE)
+```
+
+```{r data,results=T}
+data=data.frame(read.csv("Telecom Data.csv"))
+str(data)
+data_sampled<- ovun.sample(Churn~., data=data, method = "over",
+                    p = 0.5,
+                    seed = 222
+                    )$data
+data[data == "Yes"]= 1      
+data[data == "No"]= 0
+data$Churn = as.numeric(data$Churn)
+set.seed(123)
+ind <- sample(2, nrow(data), replace = TRUE, prob = c(0.8, 0.2))
+train <- data[ind==1,]
+test <- data[ind==2,]
+write.csv(train, "ROSE_train.csv", row.names=FALSE)
+write.csv(test, "ROSE_test.csv", row.names=FALSE)
+```
+
+## Logit Model
+
+```{r logit,results=T}
+
+model=glm(Churn ~ IncomeGroup+ChildrenInHH+Homeownership+PrizmCode+MonthlyMinutes+MonthlyRevenue+TotalRecurringCharge+DirectorAssistedCalls+OverageMinutes+RoamingCalls+DroppedCalls+UnansweredCalls+CustomerCareCalls+MonthsInService+UniqueSubs+ActiveSubs+CurrentEquipmentDays+AgeHH1+AgeHH2, both, family = "binomial")
+pred=predict(model,newdata=test)
+
+
+
+
+```
+
+## Confusion matrix
+
+```{r Confusion_Matrix,results=T}
+loadPkg("regclass")
+confusion_matrix=table(test$Churn,pred>=0.5)
+xkabledply(confusion_matrix)
+TP=confusion_matrix[2,2]
+FP=confusion_matrix[2,1]
+TN=confusion_matrix[1,1]
+FN=confusion_matrix[1,2]
+
+Accuracy=(TP+TN)/(TP+FP+TN+FN)
+Accuracy
+
+Precision = TP/(TP + FP)
+Precision
+
+Recall_rate = TP/(TP + FN)
+Recall_rate
+
+```
+
+## AUC ROC Curve
+
+```{r roc_auc,results=T}
+loadPkg("pROC")
+prediction = predict(model,test_data,type = "response")
+prepro_telecom_data$prediction = prediction
+h1 <- roc(Churn~prediction, data = prepro_telecom_data)
+auc(h1)
+plot(h1)
+#unloadPkg("pROC")
+```
