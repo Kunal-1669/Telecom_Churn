@@ -320,11 +320,12 @@ library(caret)
 confusionMatrix(table(classifier_knn,test_cl$Churn))
 ```
 ```{r}
-test_data <- data.frame(read.csv("test.csv"))
+test_data <- data.frame(read.csv("test_smote.csv"))
 train_data<- data.frame(read.csv("train_smote.csv"))
 ```
 ```{r}
-ncol(test_data)
+str(test_data)
+str(train_data)
 ```
 ```{r}
 length(train_data$class)
@@ -335,7 +336,7 @@ cl = train_data[,1]
 classifier_knn2 <- knn(train = train_data,
                       test = test_data,
                       cl = train_data$class,
-                      k = 17,,prob=TRUE)
+                      k = 3,,prob=TRUE)
 ```
 ```{r}
 #library(ROCR)
@@ -407,10 +408,10 @@ plot(classifier_knn2)
 
 knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
                          function(x) chooseK(x, 
-                                             train_set = train_data[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
-                                             val_set = test_data[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             train_set = train_data[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             val_set = test_data[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
                                              train_class = train_data[, "class"],
-                                             val_class = test_data[, "Churn"]))
+                                             val_class = test_data[, "class"]))
 ```
 ```{r}
 str(knn_different_k)
@@ -429,7 +430,7 @@ ggplot(knn_different_k,
 ```
 ```{r}
 
-xtab = table(classifier_knn2, test_data$Churn)
+xtab = table(classifier_knn2, test_data$class)
 print(xtab)
 ```
 ```{r}
@@ -450,7 +451,7 @@ length(classifier_knn2)
 length(train_label)
 length(test_label)
 (tab1)
-confusionMatrix(table(classifier_knn2 ,train_label))
+#confusionMatrix(table(classifier_knn2 ,train_label))
 ```
 
 ```{r}
@@ -479,7 +480,7 @@ IRISPREDCross <- CrossTable(test_label, classifier_knn2, prop.chisq = FALSE)
 ```
 ```{r}
 kNN_res = table(classifier_knn2,
-                test_data$Churn)
+                test_data$class)
 kNN_res
 sum(kNN_res)  #<- the total is all the test examples
 
@@ -499,6 +500,8 @@ recall(kNN_res)
 kNN_acc
 precision(kNN_res)
 recall(kNN_res)
+confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_data$class),mode = "everything")
+print(confusion_mtx)
 ```
 
 
@@ -562,7 +565,11 @@ kNN_acc
 precision(kNN_res)
 recall(kNN_res)
 ```
-
+```{r}
+library(ezids)
+tab1<-confusionMatrix(table(classifier_knn2 ,test_data1$Churn))
+xkabledply(tab)
+```
 
 ```{r}
 rf_uprediction <- predict(classifier_knn2, test_data,type = "prob")
@@ -586,6 +593,34 @@ classifier_knn3 <- knn(train = train_data2,
 ```{r}
 kNN_res = table(classifier_knn3,
                 test_data2$Churn)
+xkabledply(kNN_res)
+sum(kNN_res)  #<- the total is all the test examples
+
+# Select the true positives and true negatives by selecting
+# only the cells where the row and column names are the same.
+kNN_res[row(kNN_res) == col(kNN_res)]
+
+# Calculate the accuracy rate by dividing the correct classifications
+# by the total number of classifications.
+kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
+kNN_acc
+precision(kNN_res)
+recall(kNN_res)
+```
+
+```{r}
+tab1<-confusionMatrix(table(classifier_knn3 ,test_data2$Churn))
+tab1
+```
+```{r}
+classifier_knn4 <- knn(train = train_data2,
+                      test = test_data2,
+                      cl = train_data2$class,
+                      k = 7,,prob=TRUE)
+```
+```{r}
+kNN_res = table(classifier_knn4,
+                test_data2$Churn)
 kNN_res
 sum(kNN_res)  #<- the total is all the test examples
 
@@ -601,3 +636,11 @@ precision(kNN_res)
 recall(kNN_res)
 ```
 
+```{r}
+xkabledply(kNN_res)
+tab1<-confusionMatrix(table(classifier_knn3 ,test_data2$Churn))
+
+```
+```{r}
+
+```
