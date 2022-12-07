@@ -4,6 +4,10 @@ output: html_document
 date: "2022-12-06"
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ezids)
+```
 
 
 ## R Markdown
@@ -45,14 +49,15 @@ x = train[,-9]
 y = train$Churn
 ```
 
-#Naive Bayes Classification
+# Model Building Naive Bayes Classification
 
 ```{r results='show'}
 train$Churn = factor(train$class)
 model <- naive_bayes(Churn ~ ., data = train, usekernel = T) 
+summary(model)
 ```
 
-#AUC Analysis
+#AUC and ROC Analysis
 
 ```{r results='show'}
 library(pROC)
