@@ -216,7 +216,7 @@ unique(Telecom_Data_rm$CreditRating )
 ## Removing Features which have chi square value more than 0.05 and anova for numerical features 
 
 
-select_feats = c("IncomeGroup","ChildrenInHH","Homeownership","PrizmCode","MonthlyMinutes", "MonthlyRevenue","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","MonthsInService","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH1","AgeHH2")
+select_feats = c("IncomeGroup","ChildrenInHH","Homeownership","PrizmCode","MonthlyMinutes", "MonthlyRevenue","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","MonthsInService","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH1","AgeHH2","Churn")
 
 
 Telecom_Data_rm <- subset(Telecom_Data_rm, select =select_feats)
@@ -229,7 +229,7 @@ Telecom_Data_rm <- subset(Telecom_Data_rm, select =select_feats)
 
 ```{r,results="show"}
 
-downSample(x, y, list = FALSE, yname = "Class")
+
 
 ```
 
@@ -259,6 +259,58 @@ write.csv(prepro_data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\pre
 ``` 
 
 ```{r,results="show"}
+
+#library(caret)
+
+#x <-subset(Telecom_Data_rm,select = c(Churn))
+#y<-subset(Telecom_Data_rm,select = -c(Churn))
+
+churn_0 <- subset(prepro_data, prepro_data$Churn==0)
+churn_1 <- subset(prepro_data, prepro_data$Churn==1)
+
+nrow(churn_0)
+nrow(churn_1)
+
+set.seed(704)
+
+churn_0_sampled = churn_0[ sample(nrow(churn_0),14711), ]
+
+nrow(churn_0_sampled)
+nrow(churn_1)
+
+under_sampl= union(churn_0_sampled,churn_1)
+
+library(caTools)
+
+
+#make this example reproducible
+set.seed(1)
+
+#Use 80% of dataset as training set and remaining 20% as testing set
+sample_under <- sample.split(under_sampl$Churn, SplitRatio = 0.8)
+train_under  <- subset(under_sampl, sample_under == TRUE)
+test_under   <- subset(under_sampl, sample_under == FALSE)
+
+#view dimensions of training set
+dim(train_under)
+dim(test_under)
+
+table(train_under$Churn)
+table(test_under$Churn)
+
+```
+```{r,results="show"}
+
+
+write.csv(train_under, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv", row.names=FALSE)
+
+write.csv(test_under, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test_under.csv", row.names=FALSE)
+
+```
+
+
+
+```{r,results="show"}
 #install.packages("caTools")
 library(caTools)
 
@@ -280,6 +332,8 @@ table(test$Churn)
 
 
 ```
+
+
 
 ```{r, results='markup'}
 library(smotefamily)

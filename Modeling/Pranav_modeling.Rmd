@@ -19,7 +19,7 @@ output:
 # The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
 # Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
 # Once installed, load the library.
-library(ezids)
+#library(ezids)
 
 ```
 
@@ -66,7 +66,7 @@ y_test<-factor(y_test)
 set.seed(120)  # Setting seed
 classifier_RF = randomForest(x = x_train,
                              y = y_train,
-                             ntree = 100)
+                             ntree = 50)
   
 
   
@@ -96,6 +96,9 @@ library(pROC)
 rf_prediction <- predict(classifier_RF, x_test,type = "prob")
 
 ROC_rf <- roc(y_test, rf_prediction[,2])
+ROC_rf
+ROC_rf_auc_test <- auc(ROC_rf)
+ROC_rf_auc_test
 
 ```
 
@@ -105,6 +108,155 @@ ROC_rf_auc <- auc(ROC_rf)
 rf_prediction <- predict(classifier_RF, x_train,type = "prob")
 
 ROC_rf <- roc(y_train, rf_prediction[,2])
+ROC_rf
 ROC_rf_auc_train <- auc(ROC_rf)
+ROC_rf_auc_train
+```
+
+```{r,results="show"}
+train_under <- data.frame(read.csv("D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
+ncol(train_under)
+nrow(train_under)
+
+test_under <- data.frame(read.csv("D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test_under.csv"))
+ncol(test_under)
+nrow(test_under)
+
+str(test_under)
+```
+
+
+```{r,results="show"}
+# Loading package
+library(caTools)
+library(randomForest)
+library(caret)
+
+x_train<-subset(train_under, select = -c(Churn))
+y_train<-train_under$Churn
+
+x_test <- subset(test_under, select = -c(Churn))
+y_test <-test_under$Churn
+
+y_train<-factor(y_train)
+y_test<-factor(y_test)
+
+# Fitting Random Forest to the train dataset
+set.seed(120)  # Setting seed
+classifier_RF = randomForest(x = x_train,
+                             y = y_train,
+                             ntree = 50)
+  
+
+  
+# Predicting the Test set results
+y_pred = predict(classifier_RF, newdata = x_test)
+  
+# Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,y_test,mode = "everything")
+print(confusion_mtx)
+#confusion_mtx = table(y_test, y_pred)
+#confusion_mtx
+  
+# Plotting model
+plot(classifier_RF)
+  
+# Importance plot
+importance(classifier_RF)
+  
+# Variable importance plot
+varImpPlot(classifier_RF)
+
+
+
 
 ```
+
+
+```{r,results="show"}
+
+rf_uprediction <- predict(classifier_RF, x_test,type = "prob")
+
+ROC_rf <- roc(y_test, rf_uprediction[,2])
+ROC_rf
+ROC_rf_auc_test <- auc(ROC_rf)
+ROC_rf_auc_test
+
+confusion_mtx = confusionMatrix(y_prob,y_utest,mode = "everything")
+
+
+
+
+```
+
+
+```{r,results="show"}
+
+
+library(ROCR)
+prediction(rf_uprediction[,2], y_utest
+performance(measure = "tpr", x.measure = "fpr") -> result
+
+plotdata <- data.frame(x = result@x.values[[1]],
+                       y = result@y.values[[1]], 
+                       p = result@alpha.values[[1]])
+
+p <- ggplot(data = plotdata) +
+  geom_path(aes(x = x, y = y)) + 
+  xlab(result@x.name) +
+  ylab(result@y.name) +
+  theme_bw()
+
+dist_vec <- plotdata$x^2 + (1 - plotdata$y)^2
+opt_pos <- which.min(dist_vec)
+
+p + 
+  geom_point(data = plotdata[opt_pos, ], 
+             aes(x = x, y = y), col = "red") +
+  annotate("text", 
+           x = plotdata[opt_pos, ]$x + 0.1,
+           y = plotdata[opt_pos, ]$y,
+           label = paste("p =", round(plotdata[opt_pos, ]$p, 3)))
+```
+
+```{r,results="show"}
+
+thresh <- c(0.3, 0.35 ,0.4 ,0.45, 0.5, 0.55, 0.60,0.65)
+
+table(y_test)
+y_pred = predict(classifier_RF, newdata = x_test,type ="prob")
+y_prob =y_pred[,2]
+
+y_test=as.numeric(y_test)
+y_test[y_test == 1] <-  "No"             
+y_test[y_test == 2] <-   "Yes"
+  
+y_test <- as.factor(y_test)
+
+
+for (x in thresh) {
+  print("Threshold")
+  print(x)
+  y_pred = predict(classifier_RF, newdata = x_test,type ="prob")
+  y_prob =y_pred[,2]
+
+  y_prob[y_prob >= x] <-  "Yes"             
+  y_prob[y_prob < x] <-   "No"
+  
+  
+  
+  
+  y_prob <- as.factor(y_prob)
+  confusion_mtx = confusionMatrix(y_prob,y_test,mode = "everything",positive="Yes")
+  print(confusion_mtx)
+  
+
+  
+  
+}
+
+
+
+
+```
+
