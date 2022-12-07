@@ -1,0 +1,249 @@
+
+```{r results='show'}
+data_train <- read.csv(file = 'train_smote.csv')
+print(str(data_train))
+head(data_train)
+data_test <- read.csv(file ="test.csv")
+str(data_test)
+head(data_test)
+
+```
+
+
+```{r results='show'}
+data1 <- read.csv(file = 'prepro_telcom_data.csv')
+str(data)
+head(data)
+```
+
+```{r results='show'}
+
+#view dimensions of training set
+dim(data_train)
+
+
+#view dimensions of test set
+dim(data_test)
+
+```
+
+```{r results="show"}
+prop.table(table(data_test$Churn))
+
+```
+
+
+
+```{r results="show"}
+prop.table(table(data_train$class))
+
+```
+
+
+
+```{r results='show'}
+#Use 70% of dataset as training set and remaining 30% as testing set
+sample <- sample(c(TRUE, FALSE), nrow(data1), replace=TRUE, prob=c(0.7,0.3))
+train  <- data1[sample, ]
+test   <- data1[!sample, ]
+
+#view dimensions of training set
+dim(train)
+
+
+#view dimensions of test set
+dim(test)
+```
+
+```{r results="show"}
+prop.table(table(test$Churn))
+
+```
+
+
+```{r results="show"}
+prop.table(table(train$Churn))
+
+```
+
+
+```{r results="show"}
+library(DAAG)
+library(party)
+library(rpart)
+library(rpart.plot)
+library(mlbench)
+library(caret)
+library(pROC)
+library(tree)
+```
+
+
+```{r results="show"}
+# Predict churn based on NonUSTravel_Yes
+tree1 <- ctree(class ~ MonthlyMinutes,        
+                     data = data_train)        # Using the training data
+
+plot(tree1)
+```
+
+
+```{r results="show"}
+# Predict churn based on NonUSTravel_Yes
+tree_1 <- ctree(Churn ~ MonthlyMinutes,        
+                     data = train)        # Using the training data
+
+plot(tree_1)
+```
+
+```{r results="show"}
+
+
+# Predict churn 
+tree2 <- rpart(class ~ MonthlyMinutes + MonthlyRevenue +
+TotalRecurringCharge +
+DirectorAssistedCalls +
+OverageMinutes +
+RoamingCalls +
+DroppedCalls +
+UnansweredCalls +
+CustomerCareCalls +
+MonthsInService +
+UniqueSubs +
+ActiveSubs +
+CurrentEquipmentDays +
+AgeHH1 +
+AgeHH2, data = data_train)
+prp(tree2)
+```
+
+```{r results="show"}
+
+
+# Predict churn 
+tree_2 <- rpart(Churn ~ MonthlyMinutes + MonthlyRevenue +
+TotalRecurringCharge +
+DirectorAssistedCalls +
+OverageMinutes +
+RoamingCalls +
+DroppedCalls +
+UnansweredCalls +
+CustomerCareCalls +
+MonthsInService +
+UniqueSubs +
+ActiveSubs +
+CurrentEquipmentDays +
+AgeHH1 +
+AgeHH2, data = train)
+prp(tree_2)
+```
+
+```{r results="show"}
+ tree3 <- ctree(class~ ChildrenInHH_Yes+Homeownership_Unknown+PrizmCode_Rural+PrizmCode_Suburban+PrizmCode_Town+MonthlyMinutes+MonthlyRevenue+TotalRecurringCharge+DirectorAssistedCalls+OverageMinutes+RoamingCalls+DroppedCalls+UnansweredCalls+CustomerCareCalls+MonthsInService+UniqueSubs+ActiveSubs+CurrentEquipmentDays+AgeHH1+AgeHH2, data=data_train)
+```
+
+
+```{r results="show"}
+ tree_3 <- ctree(Churn~ ChildrenInHH_Yes+Homeownership_Unknown+PrizmCode_Rural+PrizmCode_Suburban+PrizmCode_Town+MonthlyMinutes+MonthlyRevenue+TotalRecurringCharge+DirectorAssistedCalls+OverageMinutes+RoamingCalls+DroppedCalls+UnansweredCalls+CustomerCareCalls+MonthsInService+UniqueSubs+ActiveSubs+CurrentEquipmentDays+AgeHH1+AgeHH2, data=train)
+```
+
+```{r results="show"}
+
+model_tree <- train(class~ IncomeGroup+ChildrenInHH_Yes+Homeownership_Unknown+PrizmCode_Rural+PrizmCode_Suburban+PrizmCode_Town+MonthlyMinutes+MonthlyRevenue+TotalRecurringCharge+DirectorAssistedCalls+OverageMinutes+RoamingCalls+DroppedCalls+UnansweredCalls+CustomerCareCalls+MonthsInService+UniqueSubs+ActiveSubs+CurrentEquipmentDays+AgeHH1+AgeHH2, data=data_train, method = "rpart")
+
+```
+
+```{r results="show"}
+
+model_tree2 <- train(Churn~ IncomeGroup+ChildrenInHH_Yes+Homeownership_Unknown+PrizmCode_Rural+PrizmCode_Suburban+PrizmCode_Town+MonthlyMinutes+MonthlyRevenue+TotalRecurringCharge+DirectorAssistedCalls+OverageMinutes+RoamingCalls+DroppedCalls+UnansweredCalls+CustomerCareCalls+MonthsInService+UniqueSubs+ActiveSubs+CurrentEquipmentDays+AgeHH1+AgeHH2, data=train, method = "rpart")
+
+```
+
+
+```{r results="show"}
+# model summary
+model_tree
+```
+```{r results="show"}
+# viasulaziation
+
+prp(model_tree$finalModel, box.palette = "Reds", tweak = 1.2, varlen = 20)
+```
+
+
+```{r results="show"}
+# model summary
+model_tree2
+```
+```{r results="show"}
+# viasulaziation
+
+prp(model_tree2$finalModel, box.palette = "Reds", tweak = 1.2, varlen = 20)
+```
+
+```{r results="show"}
+# plotting variable importance
+plot(varImp(model_tree))
+```
+
+```{r results="show"}
+# plotting variable importance
+plot(varImp(model_tree2))
+```
+
+TESTING THE DECISION TREE MODEL
+Predicting Model on Test Data Set
+```{r results="show"}
+# predicting the model on test data set
+PredModel <- predict(model_tree, data_test)
+```
+
+```{r results="show"}
+# predicting the model on test data set
+PredModel2 <- predict(model_tree2, test)
+```
+
+Confusion Matrix
+```{r results="show"}
+confMat <- table(factor(data_test$Churn),factor(PredModel))
+confMat
+accuracy <- sum(diag(confMat))/sum(confMat)
+accuracy
+```
+
+Since, the accuracy is 0.24 i.e., 24%, decision tree is not a good model. 
+
+```{r results="show"}
+confMat2 <- table(factor(test$Churn),factor(PredModel2))
+confMat2
+accuracy2 <- sum(diag(confMat2))/sum(confMat2)
+accuracy2
+```
+
+
+ROC analysis
+
+```{r results="show"}
+library(pROC)
+tree.roc <- roc(data_test$Churn, PredModel)
+print(tree.roc)
+plot(tree.roc, xlim=range(1,0))
+```
+From the graph, the curve is not bulging towards the 1, so Decision tree is not a good fit.  
+
+```{r results="show"}
+library(pROC)
+tree.roc2 <- roc(test$Churn, PredModel2)
+print(tree.roc2)
+plot(tree.roc2, xlim=range(1,0))
+```
+
+
+AUC Analysis
+
+```{r results="show"}
+auc(tree.roc)
+auc(tree.roc2)
+
+```
+Since the Area under the curve is not close to 1, we can say that Decision tree is not a good model.
