@@ -11,15 +11,17 @@ library(ezids)
 ```
 
 ```{r data,results=T}
-prepro_telecom_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
-str(prepro_telecom_data)
-summary(prepro_telecom_data)
+train_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
+test_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\test_under.csv"))
+str(train_data)
+summary(train_data)
 ```
 
 ## Logit Model
 
 ```{r logit,results=T}
-model=glm(Churn ~ ChildrenInHH_Yes+Homeownership_Unknown+PrizmCode_Rural+PrizmCode_Suburban+PrizmCode_Town+MonthlyMinutes+MonthlyRevenue+TotalRecurringCharge+DirectorAssistedCalls+OverageMinutes+RoamingCalls+DroppedCalls+UnansweredCalls+CustomerCareCalls+MonthsInService+UniqueSubs+ActiveSubs+CurrentEquipmentDays+AgeHH1+AgeHH2, prepro_telecom_data, family = "binomial")
+model=glm(Churn ~ ., train_data, family = "binomial")
+pred=predict(model,newdata=test_data)
 summary(model)
 ```
 
@@ -27,18 +29,31 @@ summary(model)
 
 ```{r Confusion_Matrix,results=T}
 loadPkg("regclass")
-confusion_matrix(model)
-unloadPkg("regclass")
+confusion_matrix=table(test_data$Churn,pred>=0.5)
+xkabledply(confusion_matrix)
+TP=confusion_matrix[2,2]
+FP=confusion_matrix[2,1]
+TN=confusion_matrix[1,1]
+FN=confusion_matrix[1,2]
+
+Accuracy=(TP+TN)/(TP+FP+TN+FN)
+Accuracy
+
 ```
 
 ## AUC ROC Curve
 
 ```{r roc_auc,results=T}
 loadPkg("pROC")
-prediction = predict(model, type = "response")
-prepro_telecom_data$prediction = prediction
-h1 <- roc(Churn~prediction, data = prepro_telecom_data)
+prediction = predict(model,test_data,type = "response")
+train_data$prediction = prediction
+h1 <- roc(Churn~prediction, data = train_data)
 auc(h1)
 plot(h1)
 #unloadPkg("pROC")
 ```
+
+
+
+
+
