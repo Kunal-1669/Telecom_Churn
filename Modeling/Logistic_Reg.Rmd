@@ -39,6 +39,12 @@ FN=confusion_matrix[1,2]
 Accuracy=(TP+TN)/(TP+FP+TN+FN)
 Accuracy
 
+Precision = TP/(TP + FP)
+Precision
+
+Recall_rate = TP/(TP + FN)
+Recall_rate
+
 ```
 
 ## AUC ROC Curve
@@ -50,7 +56,7 @@ train_data$prediction = prediction
 h1 <- roc(Churn~prediction, data = train_data)
 auc(h1)
 plot(h1)
-#unloadPkg("pROC")
+
 ```
 
 
