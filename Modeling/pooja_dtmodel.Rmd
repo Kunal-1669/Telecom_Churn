@@ -1,0 +1,133 @@
+---
+# This is the YAML header/metadata for the document
+title: "Customer Churn Analysis code & Technical Analysis"
+author: "Pooja"
+
+output:
+  html_document:
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=F}
+# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
+# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
+# Once installed, load the library.
+#library(ezids)
+
+```
+
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+# knitr::opts_chunk$set(include = F)
+# knitr::opts_chunk$set(echo = TRUE)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+```{r,results="show"}
+
+
+# Splitting the dataset into
+# the Training set and Test set
+# install.packages('caTools')
+library(caTools)
+library(caret)
+library(ISLR)
+library(DAAG)
+library(party)
+library(rpart)
+library(rpart.plot)
+library(mlbench)
+library(pROC)
+library(tree)
+```
+
+```{r,results="show"}
+set.seed(123)
+
+training_set = data.frame(read.csv("C:\\Users\\1ga17\\OneDrive\\Desktop\\POOO\\Masters in Data Science\\1st sem\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
+test_set = data.frame(read.csv("C:\\Users\\1ga17\\OneDrive\\Desktop\\POOO\\Masters in Data Science\\1st sem\\T9-Outlier-22FA\\Data Preprocessing\\test_under.csv"))
+
+
+training_set$Churn = factor(training_set$Churn,
+						levels = c(0, 1))
+test_set$Churn = factor(test_set$Churn,
+						levels = c(0, 1))
+```
+
+```{r results="show"}
+# Fitting Decision Tree Classification
+# to the Training set
+classifier = tree(formula = Churn ~ .,
+				data = training_set)
+```
+
+```{r results="show"}
+
+model_tree <- train(Churn~ ., data=training_set, method = "rpart")
+
+```
+
+```{r results="show"}
+# model summary
+model_tree
+```
+
+```{r results="show"}
+# viasulaziation
+
+prp(model_tree$finalModel, box.palette = "Reds", tweak = 1.2, varlen = 20)
+```
+
+
+```{r results="show"}
+# plotting variable importance
+plot(varImp(model_tree))
+```
+
+```{r,results="show"}
+
+# Predicting the Test set results
+y_pred = predict(classifier,
+				newdata = test_set,
+				type = 'class')
+
+# Making the Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,test_set$Churn,mode = "everything")
+confusion_mtx
+```
+Accuracy is 58.2%
+
+ROC analysis
+
+```{r results="show"}
+library(pROC)
+tree.roc <- roc((test_set$Churn), as.numeric(y_pred))
+print(tree.roc)
+plot(tree.roc, xlim=range(1,0))
+```
+
+From the graph, the curve is not bulging towards the 1, so Decision tree is not a good fit.  
+
+AUC Analysis
+
+```{r results="show"}
+auc(tree.roc)
+```
+Since the Area under the curve is not close to 1, we can say that Decision tree is not a good model.
+
+
+

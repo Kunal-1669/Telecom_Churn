@@ -12,8 +12,8 @@ head(data_test)
 
 ```{r results='show'}
 data1 <- read.csv(file = 'prepro_telcom_data.csv')
-str(data)
-head(data)
+str(data1)
+head(data1)
 ```
 
 ```{r results='show'}
@@ -195,7 +195,7 @@ TESTING THE DECISION TREE MODEL
 Predicting Model on Test Data Set
 ```{r results="show"}
 # predicting the model on test data set
-PredModel <- predict(model_tree, data_test)
+PredModel <- predict(model_tree, data_train)
 ```
 
 ```{r results="show"}
@@ -205,7 +205,7 @@ PredModel2 <- predict(model_tree2, test)
 
 Confusion Matrix
 ```{r results="show"}
-confMat <- table(factor(data_test$Churn),factor(PredModel))
+confMat <- table(factor(data_train$class),factor(PredModel))
 confMat
 accuracy <- sum(diag(confMat))/sum(confMat)
 accuracy
