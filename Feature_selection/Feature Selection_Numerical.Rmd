@@ -7,24 +7,77 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(ezids)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r data,results=T}
+prepro_telecom_data=data.frame(read.csv("Telecom Data.csv"))
+prepro_telecom_data$Churn <- as.factor(prepro_telecom_data$Churn)
+str(prepro_telecom_data)
+summary(prepro_telecom_data)
 ```
 
-## Including Plots
+```{r ANOVA,results=T}
+monthly_min_ANOVA=aov(MonthlyMinutes ~ Churn, data=prepro_telecom_data)
+xkabledply(monthly_min_ANOVA)
 
-You can also embed plots, for example:
+monthly_rev_ANOVA=aov(MonthlyRevenue ~ Churn, data=prepro_telecom_data)
+xkabledply(monthly_rev_ANOVA)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+totalrec_charge_ANOVA=aov(TotalRecurringCharge ~ Churn, data=prepro_telecom_data)
+xkabledply(totalrec_charge_ANOVA)
+
+director_assisted_ANOVA=aov(DirectorAssistedCalls ~ Churn, data=prepro_telecom_data)
+xkabledply(director_assisted_ANOVA)
+
+overage_min_ANOVA=aov(OverageMinutes ~ Churn, data=prepro_telecom_data)
+xkabledply(overage_min_ANOVA)
+
+roaming_calls_ANOVA=aov(RoamingCalls ~ Churn, data=prepro_telecom_data)
+xkabledply(roaming_calls_ANOVA)
+
+dropped_calls_ANOVA=aov(DroppedCalls ~ Churn, data=prepro_telecom_data)
+xkabledply(dropped_calls_ANOVA)
+
+blocked_calls_ANOVA=aov(BlockedCalls ~ Churn, data=prepro_telecom_data)
+xkabledply(blocked_calls_ANOVA)
+
+unanswered_calls_ANOVA=aov(UnansweredCalls  ~ Churn, data=prepro_telecom_data)
+xkabledply(unanswered_calls_ANOVA)
+
+cuscare_calls_ANOVA=aov(CustomerCareCalls  ~ Churn, data=prepro_telecom_data)
+xkabledply(cuscare_calls_ANOVA)
+
+monthsinservice_ANOVA=aov(MonthsInService  ~ Churn, data=prepro_telecom_data)
+xkabledply(monthsinservice_ANOVA)
+
+unique_subs_ANOVA=aov(UniqueSubs ~ Churn, data=prepro_telecom_data)
+xkabledply(unique_subs_ANOVA)
+
+Active_Subs_ANOVA=aov(ActiveSubs ~ Churn, data=prepro_telecom_data)
+xkabledply(Active_Subs_ANOVA)
+
+current_eqp_ANOVA=aov(CurrentEquipmentDays ~ Churn, data=prepro_telecom_data)
+xkabledply(current_eqp_ANOVA)
+
+AgeHH1_ANOVA=aov(AgeHH1 ~ Churn, data=prepro_telecom_data)
+xkabledply(AgeHH1_ANOVA)
+
+AgeHH2_ANOVA=aov(AgeHH2 ~ Churn, data=prepro_telecom_data)
+xkabledply(AgeHH2_ANOVA)
+
+#blocked_calls_ANOVA=aov(BlockedCalls ~ Churn, data=prepro_telecom_data)
+#xkabledply(blocked_calls_ANOVA)
+
+#blocked_calls_ANOVA=aov(BlockedCalls ~ Churn, data=prepro_telecom_data)
+#xkabledply(blocked_calls_ANOVA)
+
+#blocked_calls_ANOVA=aov(BlockedCalls ~ Churn, data=prepro_telecom_data)
+#xkabledply(blocked_calls_ANOVA)
+
+
+
+
+
+
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

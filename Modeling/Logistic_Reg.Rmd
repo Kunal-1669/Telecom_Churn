@@ -1,1 +1,44 @@
+---
+title: "Logistic Regression"
+author: "Sunisha Harish"
+date: "2022-12-06"
+output: html_document
+---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ezids)
+```
+
+```{r data,results=T}
+prepro_telecom_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
+str(prepro_telecom_data)
+summary(prepro_telecom_data)
+```
+
+## Logit Model
+
+```{r logit,results=T}
+model=glm(Churn ~ ChildrenInHH_Yes+Homeownership_Unknown+PrizmCode_Rural+PrizmCode_Suburban+PrizmCode_Town+MonthlyMinutes+MonthlyRevenue+TotalRecurringCharge+DirectorAssistedCalls+OverageMinutes+RoamingCalls+DroppedCalls+UnansweredCalls+CustomerCareCalls+MonthsInService+UniqueSubs+ActiveSubs+CurrentEquipmentDays+AgeHH1+AgeHH2, prepro_telecom_data, family = "binomial")
+summary(model)
+```
+
+## Confusion matrix
+
+```{r Confusion_Matrix,results=T}
+loadPkg("regclass")
+confusion_matrix(model)
+unloadPkg("regclass")
+```
+
+## AUC ROC Curve
+
+```{r roc_auc,results=T}
+loadPkg("pROC")
+prediction = predict(model, type = "response")
+prepro_telecom_data$prediction = prediction
+h1 <- roc(Churn~prediction, data = prepro_telecom_data)
+auc(h1)
+plot(h1)
+#unloadPkg("pROC")
+```
