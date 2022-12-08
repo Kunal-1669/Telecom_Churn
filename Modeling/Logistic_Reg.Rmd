@@ -47,19 +47,20 @@ print(confusion_mtx)
 ```{r data,results=T}
 train_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
 test_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\test_under.csv"))
+train_data$Churn=as.factor(train_data$Churn)
+test_data$Churn=as.factor(test_data$Churn)
 str(train_data)
 str(test_data)
-summary(train_data)
 ```
 
 ## Model building
 
 ```{r logit,results=T}
-model=glm(class ~ ., train_data, family = "binomial")
+model=glm(Churn ~ ., train_data, family = "binomial")
 pred=predict(model,newdata=test_data,type="response")
 pred[pred >= 0.5]=1         
 pred[pred < 0.5 ]=0
-pred
+pred=as.factor(pred)
 summary(model)
 ```
 
@@ -67,7 +68,7 @@ summary(model)
 ## Confusion matrix
 
 ```{r logit,results=T}
-confusion_mtx = confusionMatrix(pred,test_data$class,mode = "everything")
+confusion_mtx = confusionMatrix(pred,test_data$Churn,mode = "everything")
 print(confusion_mtx)
 ```
 
