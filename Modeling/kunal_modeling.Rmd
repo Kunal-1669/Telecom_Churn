@@ -431,7 +431,7 @@ ggplot(knn_different_k,
 ```{r}
 
 xtab = table(classifier_knn2, test_data$class)
-print(xtab)
+xkabledply(xtab)
 ```
 ```{r}
 #knnPredict <- predict(classifier_knn2, newdata = test_data )
@@ -444,40 +444,12 @@ train_label<-train_data["class"]
 str(test_label)
 str(train_label)
 ```
-```{r}
-library(caret)
-tab1<-confusionMatrix(table(classifier_knn2 ,test_label))
-length(classifier_knn2)
-length(train_label)
-length(test_label)
-(tab1)
-#confusionMatrix(table(classifier_knn2 ,train_label))
-```
 
-```{r}
-#test_churn<-test_data["Churn"]
-#test_churn$Churn<as.factor(test_churn$Churn)
-#library(kenlab)
-library(ROCR)
-performance_knn <- performance(classifier_knn2,"tpr","fpr")
-```
 
-```{r}
-plot_predict<-data.frame(test_data$MonthlyRevenue,test_data$MonthlyMinutes,test_data$MonthsInService,
-                         test_data$IncomeGroup,test_data$AgeHH1,test_data$AgeHH2,test_data$PercChangeMinutes,test_data$CreditRating,predicted=classifier_knn2)
-colnames(plot_predict)<-c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","AgeHH1","AgeHH2","PercChangeMinutes","CreditRating")
-#p1 <- ggplot(plot_predictions, aes(Petal.Length, Petal.Width, color = predicted, fill = predicted)) + 
- # geom_point(size = 5) + 
-  #geom_text(aes(label=data_test_labels),hjust=1, vjust=2) +
-  #ggtitle("Predicted relationship between Petal Length and Width") +
-  #theme(plot.title = element_text(hjust = 0.5)) +
-  #theme(legend.position = "none")
-ggplot(plot_predict,aes(MonthlyMinutes,IncomeGroup,color=classifier_knn2,fill=classifier_knn2))+geom_point(size=5)
-```
-```{r}
-library("gmodels")
-IRISPREDCross <- CrossTable(test_label, classifier_knn2, prop.chisq = FALSE)
-```
+
+
+
+
 ```{r}
 kNN_res = table(classifier_knn2,
                 test_data$class)
@@ -638,8 +610,8 @@ recall(kNN_res)
 
 ```{r}
 xkabledply(kNN_res)
-tab1<-confusionMatrix(table(classifier_knn3 ,test_data2$Churn))
-
+tab1<-confusionMatrix(table(classifier_knn3 ,test_data2$Churn),mode="everything")
+tab1
 ```
 ```{r}
 
