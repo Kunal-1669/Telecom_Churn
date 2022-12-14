@@ -1,0 +1,618 @@
+---
+# This is the YAML header/metadata for the document
+title: "Customer Churn Analysis code & Technical Analysis"
+author: "Pranav Chandaliya"
+
+output:
+  html_document:
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=F}
+# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
+# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
+# Once installed, load the library.
+library(ezids)
+
+```
+
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+# knitr::opts_chunk$set(include = F)
+# knitr::opts_chunk$set(echo = TRUE)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+
+Loading our dataset into a dataframe.
+
+```{r,results="show"}
+Telecom_Data <- data.frame(read.csv("Telecom Data.csv"))
+ncol(Telecom_Data)
+nrow(Telecom_Data)
+```
+
+There are total 58 Columns and 51,047 Rows.
+
+Let us print the structure of our data.
+
+```{r,results=T}
+str(Telecom_Data)
+```
+
+Here we are converting a few columns to factor data type.
+
+```{r,results="show"}
+#Telecom_Data$Churn <- factor(Telecom_Data$Churn)
+#Telecom_Data$CreditRating <- factor(Telecom_Data$CreditRating) 
+Telecom_Data$Occupation <- factor(Telecom_Data$Occupation)
+
+```
+
+```{r,results="show"}
+
+library(ggplot2)
+ggplot(Telecom_Data, aes(x = AgeHH1)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
+
+
+ggplot(Telecom_Data, aes(x = AgeHH2)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
+
+Telecom_Data$AgeHH1<-replace(Telecom_Data$AgeHH1,Telecom_Data$AgeHH1 <1 ,NA)
+Telecom_Data$AgeHH2<-replace(Telecom_Data$AgeHH2,Telecom_Data$AgeHH2 <1 ,NA)
+Telecom_Data$AgeHH1[is.na(Telecom_Data$AgeHH1)]<- median(Telecom_Data$AgeHH1,na.rm = TRUE)
+
+Telecom_Data$AgeHH2[is.na(Telecom_Data$AgeHH2)]<- median(Telecom_Data$AgeHH2,na.rm = TRUE)
+
+library(ggplot2)
+ggplot(Telecom_Data, aes(x = AgeHH1)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
+```
+```{r age boxplot, echo=FALSE}
+ggplot(Telecom_Data, aes(x = AgeHH1)) + 
+  geom_boxplot(color="red", fill="green", alpha=0.2)
+
+
+ggplot(Telecom_Data, aes(x = AgeHH2)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
+```
+```{r,results="show"}
+
+ggplot(Telecom_Data, aes(x = DirectorAssistedCalls)) + 
+  geom_histogram(color="red", fill="green", alpha=0.2)
+
+
+```
+
+```{r,results="show"}
+ggplot(Telecom_Data, aes(x = MonthlyRevenue)) + 
+  geom_boxplot(color="red", fill="green", alpha=0.2)
+
+```
+
+```{r,results="show"}
+## checking inactive customers 
+nrow(subset(Telecom_Data, MonthlyRevenue <= 0))
+
+## checking inactive customers 
+nrow(subset(Telecom_Data, MonthlyMinutes <= 0))
+
+
+#starwars %>% filter(mass > mean(mass, na.rm = TRUE))
+
+```
+```{r,results="show"}
+
+Telecom_Data<-subset(Telecom_Data, MonthlyRevenue >  0)
+
+Telecom_Data <-subset(Telecom_Data, MonthlyMinutes > 0)
+
+
+nrow(Telecom_Data)
+
+
+
+```
+```{r,results="show"}
+#sum(is.na(Telecom_Data))
+library(tidyverse)
+map(Telecom_Data, ~sum(is.na(.)))
+
+```
+
+```{r,results="show"}
+## Remvoing null values 
+
+Telecom_Data <- na.omit(Telecom_Data) # Method 1 - Remove NA
+
+sum(is.na(Telecom_Data))
+
+```
+
+```{r,results="show"}
+
+
+#write.csv(Telecom_Data, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\cleaned_telcom_data.csv", row.names=FALSE)
+
+
+``` 
+
+```{r,results="show"}
+library("dplyr")
+
+table(Telecom_Data$Churn)
+
+```
+```{r,results="show"}
+
+Telecom_Data_rm <- subset(Telecom_Data, select = -c(CustomerID, ServiceArea))
+
+Telecom_Data_rm$Churn<-replace(Telecom_Data_rm$Churn, Telecom_Data_rm$Churn == "No", 0)
+
+Telecom_Data_rm$Churn<-replace(Telecom_Data_rm$Churn, Telecom_Data_rm$Churn == "Yes", 1)
+
+Telecom_Data_rm$Churn =as.numeric(Telecom_Data_rm$Churn )
+
+
+#Telecom_Data_rm$CreditRating[Telecom_Data_rm$CreditRating == '1-Highest'] <- "1"
+
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "1-Highest", 1)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "2-High", 2)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "3-Good", 3)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "4-Medium",4 )
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "5-Low", 5)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "6-VeryLow", 6)
+
+Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data_rm$CreditRating == "7-Lowest", 7)
+
+Telecom_Data_rm$CreditRating <- as.numeric(Telecom_Data_rm$CreditRating )
+
+#Telecom_Data_rm["Churn"][Telecom_Data_rm["Churn"] == "No" ] <- 0
+#Telecom_Data_rm["Churn"][Telecom_Data_rm["Churn"] == "Yes" ] <- 1
+#Telecom_Data_rm$Churn =as.numeric(Telecom_Data_rm$Churn )
+
+unique(Telecom_Data_rm$CreditRating )
+
+
+#sum(Telecom_Data_rm$CreditRating)
+#sum(Telecom_Data_rm$Churn)
+```
+
+```{r,results="show"}
+# Install the required package
+#install.packages("fastDummies")
+cat_cols <-c("ChildrenInHH",'HandsetRefurbished',
+       'HandsetWebCapable', 'TruckOwner', 'RVOwner', 'Homeownership',
+       'BuysViaMailOrder', 'RespondsToMailOffers', 'OptOutMailings',
+       'NonUSTravel', 'OwnsComputer', 'HasCreditCard', 'NewCellphoneUser',
+       'NotNewCellphoneUser', 'OwnsMotorcycle', 'HandsetPrice',
+       'MadeCallToRetentionTeam', 'PrizmCode', 'Occupation',
+       'MaritalStatus')
+
+# Load the library
+library(fastDummies)
+dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dummy = TRUE,remove_selected_columns=TRUE)  
+
+
+
+
+
+
+```
+
+
+```{r}
+plot(classifier_knn)
+```
+```{r}
+plot_predict<-data.frame(test_cl$MonthlyRevenue,test_cl$MonthlyMinutes,test_cl$MonthsInService,
+                         test_cl$IncomeGroup,test_cl$AgeHH1,test_cl$AgeHH2,test_cl$PercChangeMinutes,test_cl$CreditRating,predicted=classifier_knn)
+colnames(plot_predict)<-c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","AgeHH1","AgeHH2","PercChangeMinutes","CreditRating")
+#p1 <- ggplot(plot_predictions, aes(Petal.Length, Petal.Width, color = predicted, fill = predicted)) + 
+ # geom_point(size = 5) + 
+  #geom_text(aes(label=data_test_labels),hjust=1, vjust=2) +
+  #ggtitle("Predicted relationship between Petal Length and Width") +
+  #theme(plot.title = element_text(hjust = 0.5)) +
+  #theme(legend.position = "none")
+ggplot(plot_predict,aes(MonthlyMinutes,IncomeGroup,color=classifier_knn,fill=classifier_knn))+geom_point(size=5)
+```
+```{r}
+library(caret)
+confusionMatrix(table(classifier_knn,test_cl$Churn))
+```
+```{r}
+#install.packages(kenlab)
+#ibrary(kenlab)
+predicted <- predict(classifier_knn, test_cl, type="response")
+```
+```{r}
+classifier_knn <- knn(train = train_cl,
+                      test = test_cl,
+                      cl = train_cl$Churn,
+                      k = 3)
+```
+```{r}
+str(Telecom_Data_rm)
+```
+```{r}
+
+chooseK = function(k, train_set, val_set, train_class, val_class){
+  
+  # Build knn with k neighbors considered.
+  set.seed(1)
+  class_knn = knn(train = train_set,    #<- training set cases
+                  test = val_set,       #<- test set cases
+                  cl = train_class,     #<- category for classification
+                  k = k) #,                #<- number of neighbors considered
+                  # use.all = TRUE)       #<- control ties between class assignments. If true, all distances equal to the k-th largest are included
+  
+  tab = table(class_knn, val_class)
+  
+  # Calculate the accuracy.
+  accu = sum(tab[row(tab) == col(tab)]) / sum(tab)                         
+  cbind(k = k, accuracy = accu)
+}
+
+```
+```{r}
+knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
+                         function(x) chooseK(x, 
+                                             train_set = train_cl[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","AgeHH1")],
+                                             val_set = test_cl[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","AgeHH1")],
+                                             train_class = train_cl[, "Churn"],
+                                             val_class = test_cl[, "Churn"]))
+```
+```{r}
+str(knn_different_k)
+knn_different_k = data.frame(k = knn_different_k[1,],
+                             accuracy = knn_different_k[2,])
+
+# Plot accuracy vs. k.
+# install.packages("ggplot2")
+loadPkg("ggplot2")
+
+ggplot(knn_different_k,
+       aes(x = k, y = accuracy)) +
+  geom_line(color = "orange", size = 1.5) +
+  geom_point(size = 3) + 
+  labs(title = "accuracy vs k")
+```
+```{r}
+library(caTools)
+split <- sample.split(Telecom_Data_rm, SplitRatio = 0.8)
+train_cl <- subset(Telecom_Data_rm, split == "TRUE")
+test_cl <- subset(Telecom_Data_rm, split == "FALSE")
+```
+```{r}
+library(class)
+classifier_knn <- knn(train = train_cl[,c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","AgeHH1","AgeHH2","PercChangeMinutes","CreditRating")],
+                      test = test_cl[,c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","AgeHH1","AgeHH2","PercChangeMinutes","CreditRating")],
+                      cl = train_cl$Churn,
+                      k = 9)
+```
+```{r}
+library(caret)
+confusionMatrix(table(classifier_knn,test_cl$Churn))
+```
+```{r}
+test_data <- data.frame(read.csv("test_smote.csv"))
+train_data<- data.frame(read.csv("train_smote.csv"))
+```
+```{r}
+str(test_data)
+str(train_data)
+```
+```{r}
+length(train_data$class)
+```
+```{r}
+library(class)
+cl = train_data[,1]
+classifier_knn2 <- knn(train = train_data,
+                      test = test_data,
+                      cl = train_data$class,
+                      k = 3,,prob=TRUE)
+```
+```{r}
+#library(ROCR)
+#prob <- attr(classifier_knn2, "prob")
+#prob <- 2*ifelse(classifier_knn2 == "-1", 1-prob, prob) - 1
+#pred_knn <- prediction(prob, train_data$class)
+#pred_knn <- performance(pred_knn, "tpr", "fpr")
+#plot(pred_knn, avg= "threshold", colorize=T, lwd=3, main="Voilà, a ROC curve!")
+pprob <- attr(classifier_knn2,"prob")
+
+prob <- 2*ifelse(classifier_knn2 == "-1", prob,1-prob)- 1
+#pred_knn <- prediction(prob, train_data)[,2]
+#performance_knn <- performance(pred_knn, "tpr", "fpr")# AUC
+#auc_knn <- performance(pred_knn,"auc")
+#auc_knn
+#pred_knn<- prediction(prob, train_data)
+#str(prob)
+
+#Traindata$predict.score <- predict(m1, Traindata)
+#> pred <- prediction(Traindata$predict.score, Traindata$Subscribe) 
+#> perf <- performance(pred, "tpr", "fpr")
+#> plot(perf)
+#> 
+train_data$prediction<-predict(classifier_knn,train_data)[,2]
+pred <- prediction(train_data$prediction, train_data$class) 
+perf <- performance(pred, "tpr", "fpr")
+```
+```{r}
+class(train_data$class)[1]
+```
+```{r}
+#prediction <- predict(model, df_test, type="response")
+ 
+# create roc curve
+#roc_object <- roc( df_test$z, prediction)
+ 
+# calculate area under curve
+
+#prediction <- predict(classifier_knn2, test_data, type="response")
+#roc_object <- roc( test_data$Churn, prediction)
+#auc( roc_object )
+library(pROC)
+roc_full_resolution <- roc(classifier_knn2,as.numeric(test_data$Churn))
+plot.roc(roc_full_resolution, col="red", lwd=3, main="ROC curve fdi")
+auc(roc_full_resolution)
+
+```
+```{r}
+plot(classifier_knn2)
+```
+```{r}
+#Variables with less p value
+
+#Monthly minutes 
+#Monthly revenue 
+#TotalRecurringCharge
+#DirectorAssistedCalls
+#OverageMinutes
+#RoamingCalls
+#DroppedCalls
+#UnansweredCalls
+#CustomerCareCalls
+#MonthsInService
+#UniqueSubs
+#ActiveSubs
+#CurrentEquipmentDays
+#AgeHH1
+#AgeHH2
+
+knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
+                         function(x) chooseK(x, 
+                                             train_set = train_data[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             val_set = test_data[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             train_class = train_data[, "class"],
+                                             val_class = test_data[, "class"]))
+```
+```{r}
+str(knn_different_k)
+knn_different_k = data.frame(k = knn_different_k[1,],
+                             accuracy = knn_different_k[2,])
+
+# Plot accuracy vs. k.
+# install.packages("ggplot2")
+loadPkg("ggplot2")
+
+ggplot(knn_different_k,
+       aes(x = k, y = accuracy)) +
+  geom_line(color = "orange", size = 1.5) +
+  geom_point(size = 3) + 
+  labs(title = "accuracy vs k")
+```
+```{r}
+
+xtab = table(classifier_knn2, test_data$class)
+xkabledply(xtab)
+```
+```{r}
+#knnPredict <- predict(classifier_knn2, newdata = test_data )
+test_label<-test_data[,1]
+train_label<-train_data["class"]
+
+
+```
+```{r}
+str(test_label)
+str(train_label)
+```
+
+
+
+
+
+
+```{r}
+kNN_res = table(classifier_knn2,
+                test_data$class)
+kNN_res
+sum(kNN_res)  #<- the total is all the test examples
+
+# Select the true positives and true negatives by selecting
+# only the cells where the row and column names are the same.
+kNN_res[row(kNN_res) == col(kNN_res)]
+
+# Calculate the accuracy rate by dividing the correct classifications
+# by the total number of classifications.
+kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
+kNN_acc
+precision(kNN_res)
+recall(kNN_res)
+```
+
+```{r}
+kNN_acc
+precision(kNN_res)
+recall(kNN_res)
+confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_data$class),mode = "everything")
+print(confusion_mtx)
+```
+
+
+
+```{r}
+test_data1 <- data.frame(read.csv("test_under.csv"))
+train_data1<- data.frame(read.csv("train_under.csv"))
+```
+```{r}
+str(test_data1)
+str(train_data1)
+```
+```{r}
+knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
+                         function(x) chooseK(x, 
+                                             train_set = train_data1[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             val_set = test_data1[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             train_class = train_data1[, "Churn"],
+                                             val_class = test_data1[, "Churn"]))
+```
+```{r}
+str(knn_different_k)
+knn_different_k = data.frame(k = knn_different_k[1,],
+                             accuracy = knn_different_k[2,])
+
+# Plot accuracy vs. k.
+# install.packages("ggplot2")
+library("ggplot2")
+
+ggplot(knn_different_k,
+       aes(x = k, y = accuracy)) +
+  geom_line(color = "orange", size = 1.5) +
+  geom_point(size = 3) + 
+  labs(title = "accuracy vs k")
+```
+```{r}
+classifier_knn2 <- knn(train = train_data1,
+                      test = test_data1,
+                      cl = train_data1$Churn,
+                      k = 17,,prob=TRUE)
+```
+```{r}
+kNN_res = table(classifier_knn2,
+                test_data1$Churn)
+kNN_res
+sum(kNN_res)  #<- the total is all the test examples
+
+# Select the true positives and true negatives by selecting
+# only the cells where the row and column names are the same.
+kNN_res[row(kNN_res) == col(kNN_res)]
+
+# Calculate the accuracy rate by dividing the correct classifications
+# by the total number of classifications.
+kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
+kNN_acc
+precision(kNN_res)
+recall(kNN_res)
+```
+```{r}
+kNN_acc
+precision(kNN_res)
+recall(kNN_res)
+```
+```{r}
+library(ezids)
+tab1<-confusionMatrix(table(classifier_knn2 ,test_data1$Churn))
+xkabledply(tab)
+```
+
+```{r}
+rf_uprediction <- predict(classifier_knn2, test_data,type = "prob")
+ROC_rf <- roc(test_data, rf_uprediction[,2])
+ROC_rf
+ROC_rf_auc_test <- auc(ROC_rf)
+ROC_rf_auc_test
+```
+
+
+```{r}
+test_data2 <- data.frame(read.csv("test.csv"))
+train_data2<- data.frame(read.csv("train_smote.csv"))
+```
+```{r}
+classifier_knn3 <- knn(train = train_data2,
+                      test = test_data2,
+                      cl = train_data2$class,
+                      k = 17,,prob=TRUE)
+```
+```{r}
+kNN_res = table(classifier_knn3,
+                test_data2$Churn)
+xkabledply(kNN_res)
+sum(kNN_res)  #<- the total is all the test examples
+
+# Select the true positives and true negatives by selecting
+# only the cells where the row and column names are the same.
+kNN_res[row(kNN_res) == col(kNN_res)]
+
+# Calculate the accuracy rate by dividing the correct classifications
+# by the total number of classifications.
+kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
+kNN_acc
+precision(kNN_res)
+recall(kNN_res)
+```
+
+```{r}
+tab1<-confusionMatrix(table(classifier_knn3 ,test_data2$Churn))
+tab1
+```
+```{r}
+classifier_knn4 <- knn(train = train_data2,
+                      test = test_data2,
+                      cl = train_data2$class,
+                      k = 7,,prob=TRUE)
+```
+```{r}
+kNN_res = table(classifier_knn4,
+                test_data2$Churn)
+kNN_res
+sum(kNN_res)  #<- the total is all the test examples
+
+# Select the true positives and true negatives by selecting
+# only the cells where the row and column names are the same.
+kNN_res[row(kNN_res) == col(kNN_res)]
+
+# Calculate the accuracy rate by dividing the correct classifications
+# by the total number of classifications.
+kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
+kNN_acc
+precision(kNN_res)
+recall(kNN_res)
+```
+
+```{r}
+xkabledply(kNN_res)
+tab1<-confusionMatrix(table(classifier_knn3 ,test_data2$Churn),mode="everything")
+tab1
+```
+```{r}
+
+```
