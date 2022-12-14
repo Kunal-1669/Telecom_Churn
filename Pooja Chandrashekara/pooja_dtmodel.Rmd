@@ -112,10 +112,14 @@ y_pred = predict(classifier,
 
 # Making the Confusion Matrix
 
-confusion_mtx = confusionMatrix((y_pred),(test_set$class),mode = "everything")
+# Making the Confusion Matrix
+confusion_mtx = confusionMatrix((test_set$class),(y_pred), mode="everything")
 confusion_mtx
 ```
 Accuracy is 64.4%
+Recall is 61.2%
+Precision is 100%
+
 
 ROC analysis
 
