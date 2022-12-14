@@ -636,3 +636,143 @@ xkabledply(kNN_res)
 tab1<-confusionMatrix(table(classifier_knn3 ,test_data2$Churn),mode="everything")
 tab1
 ```
+
+
+
+
+
+
+
+
+```{r}
+
+
+chooseK = function(k, train_set, val_set, train_class, val_class){
+  
+  # Build knn with k neighbors considered.
+  set.seed(1)
+  class_knn = knn(train = train_set,    #<- training set cases
+                  test = val_set,       #<- test set cases
+                  cl = train_class,     #<- category for classification
+                  k = k) #,                #<- number of neighbors considered
+                  # use.all = TRUE)       #<- control ties between class assignments. If true, all distances equal to the k-th largest are included
+  
+  tab = table(class_knn, val_class)
+  
+  # Calculate the accuracy.
+  accu = sum(tab[row(tab) == col(tab)]) / sum(tab)                         
+  cbind(k = k, accuracy = accu)
+}
+
+```
+
+```{r}
+#Variables with less p value
+
+#Monthly minutes 
+#Monthly revenue 
+#TotalRecurringCharge
+#DirectorAssistedCalls
+#OverageMinutes
+#RoamingCalls
+#DroppedCalls
+#UnansweredCalls
+#CustomerCareCalls
+#MonthsInService
+#UniqueSubs
+#ActiveSubs
+#CurrentEquipmentDays
+#AgeHH1
+#AgeHH2
+
+knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
+                         function(x) chooseK(x, 
+                                             train_set = train_data[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             val_set = test_data[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             train_class = train_data[, "class"],
+                                             val_class = test_data[, "class"]))
+```
+```{r}
+str(knn_different_k)
+knn_different_k = data.frame(k = knn_different_k[1,],
+                             accuracy = knn_different_k[2,])
+
+# Plot accuracy vs. k.
+# install.packages("ggplot2")
+loadPkg("ggplot2")
+
+ggplot(knn_different_k,
+       aes(x = k, y = accuracy)) +
+  geom_line(color = "orange", size = 1.5) +
+  geom_point(size = 3) + 
+  labs(title = "accuracy vs k")
+```
+## For SMOTE we selected K value as 3 
+```{r}
+
+library(class)
+cl = train_data[,1]
+classifier_knn2 <- knn(train = train_data,
+                      test = test_data,
+                      cl = train_data$class,
+                      k = 3,,prob=TRUE)
+
+```
+```{r}
+
+xtab = table(classifier_knn2, test_data$class)
+xkabledply(xtab)
+```
+
+```{r}
+library(caret)
+
+
+confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_data$class),mode = "everything")
+print(confusion_mtx)
+```
+
+
+
+#Under sampling
+```{r}
+knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
+                         function(x) chooseK(x, 
+                                             train_set = train_data1[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             val_set = test_data1[, c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup_1","IncomeGroup_2","IncomeGroup_3","IncomeGroup_4","IncomeGroup_5","IncomeGroup_6","IncomeGroup_7","IncomeGroup_8","IncomeGroup_9","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH2","AgeHH1")],
+                                             train_class = train_data1[, "Churn"],
+                                             val_class = test_data1[, "Churn"]))
+```
+```{r}
+str(knn_different_k)
+knn_different_k = data.frame(k = knn_different_k[1,],
+                             accuracy = knn_different_k[2,])
+
+# Plot accuracy vs. k.
+# install.packages("ggplot2")
+library("ggplot2")
+
+ggplot(knn_different_k,
+       aes(x = k, y = accuracy)) +
+  geom_line(color = "orange", size = 1.5) +
+  geom_point(size = 3) + 
+  labs(title = "accuracy vs k")
+```
+
+```{r}
+classifier_knn3 <- knn(train = train_data1,
+                      test = test_data1,
+                      cl = train_data1$Churn,
+                      k = 17,,prob=TRUE)
+```
+```{r}
+xtab = table(classifier_knn3, test_data1$Churn)
+xkabledply(xtab)
+```
+```{r}
+library(caret)
+
+
+confusion_mtx1 = confusionMatrix(classifier_knn3,as.factor(test_data1$Churn),mode = "everything")
+print(confusion_mtx)
+```
