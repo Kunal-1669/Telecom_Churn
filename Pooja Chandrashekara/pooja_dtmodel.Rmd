@@ -94,7 +94,9 @@ model_tree
 
 prp(model_tree$finalModel, box.palette = "Reds", tweak = 1.2, varlen = 20)
 ```
-
+The final tree model shows that customer's months in service less than 10 likely to be not churned.
+If months in service is greater than 10, the home-ownership is checked, if there is any children in home ownership then the customer is unlikely to be churned. 
+If home ownership is unknown then also customer is unlikely to be churned. 
 
 ```{r results="show"}
 # plotting variable importance
@@ -126,7 +128,7 @@ plot(tree.roc, xlim=range(1,0))
 
 From the graph, the curve is not bulging towards the 1, so Decision tree is not a good fit.  
 
-AUC Analysis
+Area Under the Curve(AUC) Analysis
 
 ```{r results="show"}
 auc(tree.roc)
