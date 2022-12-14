@@ -44,9 +44,9 @@ summary(model)
 confusion_matrix=table(test_data$class,pred>=0.5)
 xkabledply(confusion_matrix)
 TP=confusion_matrix[2,2]
-FP=confusion_matrix[2,1]
+FP=confusion_matrix[1,2]
 TN=confusion_matrix[1,1]
-FN=confusion_matrix[1,2]
+FN=confusion_matrix[2,1]
 Accuracy=(TP+TN)/(TP+FP+TN+FN)
 Accuracy
 Precision = TP/(TP + FP)
@@ -87,9 +87,9 @@ summary(model)
 confusion_matrix=table(test_data$Churn,pred>=0.5)
 xkabledply(confusion_matrix)
 TP=confusion_matrix[2,2]
-FP=confusion_matrix[2,1]
+FP=confusion_matrix[1,2]
 TN=confusion_matrix[1,1]
-FN=confusion_matrix[1,2]
+FN=confusion_matrix[2,1]
 Accuracy=(TP+TN)/(TP+FP+TN+FN)
 Accuracy
 Precision = TP/(TP + FP)
