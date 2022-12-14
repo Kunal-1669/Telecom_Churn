@@ -66,7 +66,7 @@ y_test<-factor(y_test)
 set.seed(120)  # Setting seed
 classifier_RF = randomForest(x = x_train,
                              y = y_train,
-                             ntree = 50)
+                             ntree = 500)
   
 
   
@@ -132,6 +132,8 @@ library(caTools)
 library(randomForest)
 library(caret)
 
+
+
 x_train<-subset(train_under, select = -c(Churn))
 y_train<-train_under$Churn
 
@@ -145,7 +147,7 @@ y_test<-factor(y_test)
 set.seed(120)  # Setting seed
 classifier_RF = randomForest(x = x_train,
                              y = y_train,
-                             ntree = 50)
+                             ntree = 500)
   
 
   
@@ -171,7 +173,91 @@ varImpPlot(classifier_RF)
 
 
 ```
+```{r,results="show"}
+# Loading package
+## SMOTE
+library(caTools)
+library(randomForest)
+library(caret)
+train_smote <- data.frame(read.csv("D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv"))
 
+test_smote <- data.frame(read.csv("D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test_smote.csv"))
+
+
+x_train<-subset(train_smote, select = -c(class))
+y_train<-train_smote$class
+
+table(y_train)
+x_test <- subset(test_smote, select = -c(class))
+y_test <-test_smote$class
+table(y_test)
+
+
+y_train<-factor(y_train,levels = c(0, 1))
+y_test<-factor(y_test,levels = c(0, 1))
+table(y_train)
+table(y_test)
+
+# Fitting Random Forest to the train dataset
+set.seed(120)  # Setting seed
+classifier_RF = randomForest(x = x_train,
+                             y = y_train,
+                             ntree = 500)
+  
+
+  
+# Predicting the Test set results
+y_pred = predict(classifier_RF, newdata = x_test)
+  
+#y_test=as.numeric(y_test)
+#y_test[y_test == 0] <-  "No"             
+#y_test[y_test == 1] <-   "Yes"
+#y_test = factor(y_test)
+#table(y_test)
+
+
+
+#y_pred=as.numeric(y_pred)
+#y_pred[y_pred == 0] <-  "No"             
+#y_pred[y_pred == 1] <-   "Yes"
+#y_pred = factor(y_pred)
+#table(y_pred)
+
+#y
+# Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,y_test,mode = "everything")
+print(confusion_mtx)
+#confusion_mtx = table(y_test, y_pred)
+#confusion_mtx
+  
+# Plotting model
+plot(classifier_RF)
+  
+# Importance plot
+importance(classifier_RF)
+  
+# Variable importance plot
+varImpPlot(classifier_RF)
+
+
+
+```
+```{r,results="show"}
+#library("InformationValue")
+y_pred = predict(classifier_RF, newdata = x_test,type="prob")
+y_pred = y_pred[,2]
+#optimal <- optimalCutoff(y_test, y_pred)[1]
+
+
+```
+```{r,results="show"}
+
+
+imp_feats<-importance(classifier_RF)
+ggplot(imp_feats,aes(x=Occupation)) + geom_bar(fill = "aquamarine3") + ggtitle("Frequency distribution of occupation")+ theme_classic()
+
+
+```
 
 ```{r,results="show"}
 
@@ -261,4 +347,95 @@ for (x in thresh) {
 
 
 ```
+``````{r,results="show"}
+thresh <- c(0.3, 0.35,0.40,0.45)
+Accuracy <- c(0.67,0.72,0.76,0.77)
+Recall <- c(0.85,0.75,0.66,0.58)
 
+metrics <- data.frame(thresh, Accuracy,Recall)
+
+library(plotly)
+t <- list(
+  family = "sans serif",
+  size = 14,
+  color = toRGB("grey50"))
+
+
+fig <- plot_ly(metrics, x = ~Accuracy, y = ~Recall, text = ~thresh)
+fig <- fig %>% add_markers()
+fig <- fig %>% add_text(textfont = t, textposition = "top right")
+
+
+fig
+
+
+```
+
+```{r,results="show"}
+# Encoding the target feature as factor
+
+
+# Splitting the dataset into
+# the Training set and Test set
+# install.packages('caTools')
+library(caTools)
+set.seed(123)
+
+training_set = data.frame(read.csv("D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
+test_set = data.frame(read.csv("D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test_under.csv"))
+
+
+training_set$Churn = factor(training_set$Churn,
+						levels = c(0, 1))
+
+test_set$Churn = factor(test_set$Churn,
+						levels = c(0, 1))
+
+# Fitting Decision Tree Classification
+# to the Training set
+# install.packages('rpart')
+library(tree)
+classifier = tree(formula = Churn ~ .,
+				data = training_set)
+
+# Predicting the Test set results
+y_pred = predict(classifier,
+				newdata = test_set,
+				type = 'class')
+
+# Making the Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,test_set$Churn,mode = "everything")
+```
+
+```{r,results="show"}
+
+i_scores <- varImp(classifier_RF, conditional=TRUE)
+#Gathering rownames in 'var'  and converting it to the factor
+#to provide 'fill' parameter for the bar chart. 
+i_scores <- i_scores %>% tibble::rownames_to_column("var") 
+i_scores$var<- i_scores$var %>% as.factor()
+
+plot_ly(
+  data = i_scores,
+  x = ~var,
+  y = ~Overall,
+  type = "bar"
+) %>% 
+layout(xaxis = list(categoryorder = "total descending"))
+
+```
+
+```{r,results="show"}
+
+
+y_pred = predict(classifier_RF, newdata = x_test,type ="prob")
+y_prob=y_pred[,2]
+print(" 0.80")
+length(y_prob[y_prob >= 0.80])
+##1872
+print(" 0.60")
+length(y_prob[y_prob >= 0.60]) - 1872
+##864
+
+
+```

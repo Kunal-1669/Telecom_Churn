@@ -228,10 +228,16 @@ Telecom_Data_rm <- subset(Telecom_Data_rm, select =select_feats)
 ```
 
 ```{r,results="show"}
+write.csv(Telecom_Data_rm, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\without_encoding.csv", row.names=FALSE)
 
 
 
 ```
+
+
+
+
+
 
 ```{r,results="show"}
 # Install the required package
@@ -250,6 +256,43 @@ prepro_data<-dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dum
 
 ```
 
+
+```{r, results='markup'}
+
+
+
+
+
+library(smotefamily)
+x<-subset(prepro_data, select = -c(Churn))
+y<-prepro_data$Churn
+#smote = SMOTE(x,y)
+#x<-as.numeric(x)
+#y<-as.numeric(y)
+smote = SMOTE(x, y,6)
+smote_complete = smote$data
+str(smote_complete)
+
+
+#write.csv(smote_complete, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\smote_complete.csv", row.names=FALSE)
+
+#write.csv(test, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test.csv", row.names=FALSE)
+#Use 80% of dataset as training set and remaining 20% as testing set
+sample <- sample.split(smote_complete$class, SplitRatio = 0.8)
+train_smote<- subset(smote_complete, sample == TRUE)
+test_smote   <- subset(smote_complete, sample == FALSE)
+
+write.csv(train_smote, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv", row.names=FALSE)
+
+write.csv(test_smote, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test_smote.csv", row.names=FALSE)
+
+
+
+```
+
+```{r, results='markup'}
+
+```
 ```{r,results="show"}
 
 
@@ -350,6 +393,16 @@ train_smote
 write.csv(train_smote, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv", row.names=FALSE)
 
 write.csv(test, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test.csv", row.names=FALSE)
+
+```
+
+```{r, results='markup'}
+
+
+
+
+
+
 
 ```
 
