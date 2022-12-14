@@ -1345,7 +1345,7 @@ print(confusion_mtx)
 
 ```{r,results="show"}
 library("class")
-
+#Creating Function to select K value
 chooseK = function(k, train_set, val_set, train_class, val_class){
   
   # Build knn with k neighbors considered.
@@ -1373,7 +1373,7 @@ str(knn_different_k)
 knn_different_k = data.frame(k = knn_different_k[1,],
                              accuracy = knn_different_k[2,])
 
-
+#Plot to see which K value will be optimal
 loadPkg("ggplot2")
 ggplot(knn_different_k,
        aes(x = k, y = accuracy)) +
@@ -1390,7 +1390,7 @@ classifier_knn2 <- knn(train = train_under,
                       test = test_under,
                       cl = train_under$Churn,
                       k = 17,prob=TRUE)
-
+#Confusion matrix
 confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_under$Churn),mode = "everything",positive = "1")
 print(confusion_mtx)
 
