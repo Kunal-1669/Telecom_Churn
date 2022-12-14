@@ -12,6 +12,8 @@ library(caTools)
 library(caret)
 ```
 
+## Testing  Git Hub Commits
+
 ## Logit Model with Over Sampling (SMOTE)
 
 ```{r data,results=T}
