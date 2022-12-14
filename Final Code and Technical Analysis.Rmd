@@ -1384,7 +1384,7 @@ ggplot(knn_different_k,
 
 
 ```{r,results="show"}
-#Selecting K value as 17 because it gave more accuracy comapred to any other value
+#Selecting K value as 17 because it gave more accuracy compared to any other value
 cl = train_under[,1]
 classifier_knn2 <- knn(train = train_under,
                       test = test_under,
@@ -1559,7 +1559,7 @@ str(knn_different_k)
 knn_different_k = data.frame(k = knn_different_k[1,],
                              accuracy = knn_different_k[2,])
 
-
+#Plot to see which K value will be optimal
 loadPkg("ggplot2")
 ggplot(knn_different_k,
        aes(x = k, y = accuracy)) +
@@ -1570,13 +1570,13 @@ ggplot(knn_different_k,
 
 
 ```{r,results="show"}
-
+#Selecting K value as 3
 cl = train_smote[,1]
 classifier_knn2 <- knn(train = train_smote,
                       test = test_smote,
                       cl = train_smote$class,
                       k = 3,prob=TRUE)
-
+#Confusion Matrix
 confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_smote$class),mode = "everything",positive = "1")
 print(confusion_mtx)
 
