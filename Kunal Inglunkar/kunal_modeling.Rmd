@@ -185,8 +185,15 @@ Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data
 
 Telecom_Data_rm$CreditRating <- as.numeric(Telecom_Data_rm$CreditRating )
 
+#Telecom_Data_rm["Churn"][Telecom_Data_rm["Churn"] == "No" ] <- 0
+#Telecom_Data_rm["Churn"][Telecom_Data_rm["Churn"] == "Yes" ] <- 1
+#Telecom_Data_rm$Churn =as.numeric(Telecom_Data_rm$Churn )
+
 unique(Telecom_Data_rm$CreditRating )
 
+
+#sum(Telecom_Data_rm$CreditRating)
+#sum(Telecom_Data_rm$Churn)
 ```
 
 ```{r,results="show"}
@@ -208,13 +215,18 @@ dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dummy = TRUE,rem
 
 ```{r}
 
-plot(classifier_knn)
+#plot(classifier_knn)
 ```
 ```{r}
 plot_predict<-data.frame(test_cl$MonthlyRevenue,test_cl$MonthlyMinutes,test_cl$MonthsInService,
                          test_cl$IncomeGroup,test_cl$AgeHH1,test_cl$AgeHH2,test_cl$PercChangeMinutes,test_cl$CreditRating,predicted=classifier_knn)
 colnames(plot_predict)<-c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","AgeHH1","AgeHH2","PercChangeMinutes","CreditRating")
-
+#p1 <- ggplot(plot_predictions, aes(Petal.Length, Petal.Width, color = predicted, fill = predicted)) + 
+ # geom_point(size = 5) + 
+  #geom_text(aes(label=data_test_labels),hjust=1, vjust=2) +
+  #ggtitle("Predicted relationship between Petal Length and Width") +
+  #theme(plot.title = element_text(hjust = 0.5)) +
+  #theme(legend.position = "none")
 ggplot(plot_predict,aes(MonthlyMinutes,IncomeGroup,color=classifier_knn,fill=classifier_knn))+geom_point(size=5)
 ```
 ```{r}
@@ -237,26 +249,7 @@ classifier_knn <- knn(train = train_cl,
 str(Telecom_Data_rm)
 ```
 
-```{r}
 
-chooseK = function(k, train_set, val_set, train_class, val_class){
-  
-  # Build knn with k neighbors considered.
-  set.seed(1)
-  class_knn = knn(train = train_set,    #<- training set cases
-                  test = val_set,       #<- test set cases
-                  cl = train_class,     #<- category for classification
-                  k = k) #,                #<- number of neighbors considered
-                  # use.all = TRUE)       #<- control ties between class assignments. If true, all distances equal to the k-th largest are included
-  
-  tab = table(class_knn, val_class)
-  
-  # Calculate the accuracy.
-  accu = sum(tab[row(tab) == col(tab)]) / sum(tab)                         
-  cbind(k = k, accuracy = accu)
-}
-
-```
 
 ```{r}
 knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
@@ -314,21 +307,30 @@ str(train_data)
 ```{r}
 length(train_data$class)
 ```
-```{r}
-library(class)
-cl = train_data[,1]
-classifier_knn2 <- knn(train = train_data,
-                      test = test_data,
-                      cl = train_data$class,
-                      k = 3,,prob=TRUE)
-```
+
 
 ```{r}
-
+#library(ROCR)
+#prob <- attr(classifier_knn2, "prob")
+#prob <- 2*ifelse(classifier_knn2 == "-1", 1-prob, prob) - 1
+#pred_knn <- prediction(prob, train_data$class)
+#pred_knn <- performance(pred_knn, "tpr", "fpr")
+#plot(pred_knn, avg= "threshold", colorize=T, lwd=3, main="Voilà, a ROC curve!")
 pprob <- attr(classifier_knn2,"prob")
 
-prob <- 2*ifelse(classifier_knn2 == "-1", prob,1-prob)- 1
+#prob <- 2*ifelse(classifier_knn2 == "-1", prob,1-prob)- 1
+#pred_knn <- prediction(prob, train_data)[,2]
+#performance_knn <- performance(pred_knn, "tpr", "fpr")# AUC
+#auc_knn <- performance(pred_knn,"auc")
+#auc_knn
+#pred_knn<- prediction(prob, train_data)
+#str(prob)
 
+#Traindata$predict.score <- predict(m1, Traindata)
+#> pred <- prediction(Traindata$predict.score, Traindata$Subscribe) 
+#> perf <- performance(pred, "tpr", "fpr")
+#> plot(perf)
+#> 
 train_data$prediction<-predict(classifier_knn,train_data)[,2]
 pred <- prediction(train_data$prediction, train_data$class) 
 perf <- performance(pred, "tpr", "fpr")
@@ -339,7 +341,16 @@ class(train_data$class)[1]
 ```
 
 ```{r}
+#prediction <- predict(model, df_test, type="response")
+ 
+# create roc curve
+#roc_object <- roc( df_test$z, prediction)
+ 
+# calculate area under curve
 
+#prediction <- predict(classifier_knn2, test_data, type="response")
+#roc_object <- roc( test_data$Churn, prediction)
+#auc( roc_object )
 library(pROC)
 roc_full_resolution <- roc(classifier_knn2,as.numeric(test_data$Churn))
 plot.roc(roc_full_resolution, col="red", lwd=3, main="ROC curve fdi")
@@ -349,6 +360,27 @@ auc(roc_full_resolution)
 
 ```{r}
 plot(classifier_knn2)
+```
+```{r}
+
+
+chooseK = function(k, train_set, val_set, train_class, val_class){
+  
+  # Build knn with k neighbors considered.
+  set.seed(1)
+  class_knn = knn(train = train_set,    #<- training set cases
+                  test = val_set,       #<- test set cases
+                  cl = train_class,     #<- category for classification
+                  k = k) #,                #<- number of neighbors considered
+                  # use.all = TRUE)       #<- control ties between class assignments. If true, all distances equal to the k-th largest are included
+  
+  tab = table(class_knn, val_class)
+  
+  # Calculate the accuracy.
+  accu = sum(tab[row(tab) == col(tab)]) / sum(tab)                         
+  cbind(k = k, accuracy = accu)
+}
+
 ```
 
 ```{r}
@@ -383,7 +415,7 @@ knn_different_k = data.frame(k = knn_different_k[1,],
                              accuracy = knn_different_k[2,])
 
 # Plot accuracy vs. k.
-
+# install.packages("ggplot2")
 loadPkg("ggplot2")
 
 ggplot(knn_different_k,
@@ -393,6 +425,16 @@ ggplot(knn_different_k,
   labs(title = "accuracy vs k")
 ```
 ## For SMOTE we selected K value as 3 
+```{r}
+
+library(class)
+cl = train_data[,1]
+classifier_knn2 <- knn(train = train_data,
+                      test = test_data,
+                      cl = train_data$class,
+                      k = 3,,prob=TRUE)
+
+```
 ```{r}
 
 xtab = table(classifier_knn2, test_data$class)
@@ -409,7 +451,12 @@ train_label<-train_data["class"]
 str(test_label)
 str(train_label)
 ```
- 
+
+
+
+
+
+
 ```{r}
 kNN_res = table(classifier_knn2,
                 test_data$class)
@@ -424,14 +471,15 @@ kNN_res[row(kNN_res) == col(kNN_res)]
 # by the total number of classifications.
 kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
 kNN_acc
-precision(kNN_res)
-recall(kNN_res)
+#precision(kNN_res)
+#recall(kNN_res)
+
 ```
 
 ```{r}
-kNN_acc
-precision(kNN_res)
-recall(kNN_res)
+library(caret)
+
+
 confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_data$class),mode = "everything")
 print(confusion_mtx)
 ```
@@ -471,27 +519,41 @@ ggplot(knn_different_k,
 ```
 ## For under sampling data we selected K value as 17
 ```{r}
-classifier_knn2 <- knn(train = train_data1,
+classifier_knn3 <- knn(train = train_data1,
                       test = test_data1,
                       cl = train_data1$Churn,
                       k = 17,,prob=TRUE)
 ```
 ```{r}
-kNN_res = table(classifier_knn2,
+xtab = table(classifier_knn3, test_data1$Churn)
+xkabledply(xtab)
+```
+```{r}
+library(caret)
+
+
+confusion_mtx1 = confusionMatrix(classifier_knn3,as.factor(test_data1$Churn),mode = "everything")
+print(confusion_mtx)
+```
+```{r}
+
+library(rminer)
+kNN_res1 = table(classifier_knn3,
                 test_data1$Churn)
-kNN_res
-sum(kNN_res)  #<- the total is all the test examples
+kNN_res1
+sum(kNN_res1)  #<- the total is all the test examples
 
 # Select the true positives and true negatives by selecting
 # only the cells where the row and column names are the same.
-kNN_res[row(kNN_res) == col(kNN_res)]
+kNN_res1[row(kNN_res1) == col(kNN_res1)]
 
 # Calculate the accuracy rate by dividing the correct classifications
 # by the total number of classifications.
-kNN_acc = sum(kNN_res[row(kNN_res) == col(kNN_res)]) / sum(kNN_res)
-kNN_acc
-precision(kNN_res)
-recall(kNN_res)
+kNN_acc1 = sum(kNN_res1[row(kNN_res1) == col(kNN_res1)]) / sum(kNN_res1)
+kNN_acc1
+
+#precision(kNN_res)
+#recall(kNN_res)1
 ```
 ```{r}
 kNN_acc
@@ -520,7 +582,7 @@ train_data2<- data.frame(read.csv("train_smote.csv"))
 ```{r}
 classifier_knn3 <- knn(train = train_data2,
                       test = test_data2,
-                      cl = train_data2$class,
+                      cl = train_data2$Churn,
                       k = 17,,prob=TRUE)
 ```
 ```{r}
