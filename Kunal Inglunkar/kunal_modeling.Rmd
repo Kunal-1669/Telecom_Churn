@@ -409,7 +409,7 @@ train_label<-train_data["class"]
 str(test_label)
 str(train_label)
 ```
-
+ 
 ```{r}
 kNN_res = table(classifier_knn2,
                 test_data$class)
