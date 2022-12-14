@@ -1,0 +1,146 @@
+---
+title: "Untitled"
+output: html_document
+date: "2022-12-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+---
+title: "Modelling_Vaish"
+output: html_document
+date: "2022-12-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ezids)
+```
+
+
+## R Markdown
+
+```{r results='show'}
+data <- read.csv(file = 'prepro_telcom_data.csv')
+str(data)
+head(data)
+```
+
+#Data partition
+```{r results='show'}
+#Use 70% of dataset as training set and remaining 30% as testing set
+sample <- sample(c(TRUE, FALSE), nrow(data), replace=TRUE, prob=c(0.7,0.3))
+#train  <- data[sample, ]
+#test   <- data[!sample, ]
+
+train <- read.csv(file = 'C:\\Users\\Vaishnavi\\OneDrive\\Desktop\\into to data science project\\T9-Outlier-22FA\\Data Preprocessing\\train_smote.csv')
+test <- read.csv(file = 'C:\\Users\\Vaishnavi\\OneDrive\\Desktop\\into to data science project\\T9-Outlier-22FA\\Data Preprocessing\\test_smote.csv')
+
+#view dimensions of training set
+dim(train)
+
+
+#view dimensions of test set
+dim(test)
+```
+
+#loading neccessary libraries
+```{r results='show'}
+library(naivebayes)
+library(dplyr)
+library(ggplot2)
+library(psych)
+```
+
+```{r results='show'}
+x = train
+y = train$class
+```
+
+# Model Building Naive Bayes Classification
+
+```{r results='show'}
+train$class = factor(train$class)
+model <- naive_bayes(class ~ ., data = train, usekernel = T) 
+summary(model)
+plot(model)
+```
+
+#AUC and ROC Analysis
+
+```{r results='show'}
+library(pROC)
+
+
+predictiont <- predict(model, test, type="prob")
+
+
+prediction_test <-predict(model, test, type="class")
+
+
+
+roc_object <- roc( test$class, prediction[,2])
+
+auc( roc_object )
+
+
+prediction_train <- predict(model, train, type="prob")
+
+roc_object_train <- roc( train$class, prediction_train[,2])
+
+auc( roc_object_train )
+
+confusion_matrix=table(test$class,prediction_train[,2]>=0.5)
+xkabledply(confusion_matrix)
+TP=confusion_matrix[2,2]
+FP=confusion_matrix[2,1]
+TN=confusion_matrix[1,1]
+FN=confusion_matrix[1,2]
+Accuracy=(TP+TN)/(TP+FP+TN+FN)
+Accuracy
+Precision = TP/(TP + FP)
+Precision
+Recall = TP/(TP + FN)
+Recall
+
+
+#optimal <- optimalCutoff(test$default, predicted)[1]
+
+```
+
+
+#confusion_matrix
+
+```{r results='show'}
+
+y_pred = predict(model, newdata = test,type ="prob")
+#y_prob =y_pred[,1]
+y_pred=y_pred[,2]
+y_pred[y_pred >= 0.5] <-  1         
+y_pred[y_pred <0.5 ] <-   0
+
+#y_prob[y_prob >= x] <-  "Yes"             
+#y_prob[y_prob < x] <-   "No"
+
+
+#y_prob <- as.factor(y_prob)
+y_pred <-factor(y_pred,levels = c(0,1))
+test$class <-factor(test$class,levels = c(0,1))
+
+confusion_mtx = confusionMatrix(y_pred,test$class,mode = "everything")
+print(confusion_mtx)
+
+
+```

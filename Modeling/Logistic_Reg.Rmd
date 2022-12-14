@@ -12,6 +12,8 @@ library(caTools)
 library(caret)
 ```
 
+## Testing  Git Hub Commits
+
 ## Logit Model with Over Sampling (SMOTE)
 
 ```{r data,results=T}
@@ -28,23 +30,38 @@ str(test_data)
 ```{r logit,results=T}
 model=glm(class ~ ., train_data, family = "binomial")
 pred=predict(model,newdata=test_data)
-pred[pred >= 0.5]=1         
-pred[pred < 0.5 ]=0
-pred=as.factor(pred)
+#pred[pred >= 0.5]=1         
+#pred[pred < 0.5 ]=0
+#pred=as.factor(pred)
 summary(model)
 ```
 
 ## Confusion matrix
 
-```{r logit,results=T}
-confusion_mtx = confusionMatrix(pred,test_data$class,mode = "everything")
-print(confusion_mtx)
+```{r logit_CM,results=T}
+
+
+confusion_matrix=table(test_data$class,pred>=0.5)
+xkabledply(confusion_matrix)
+TP=confusion_matrix[2,2]
+FP=confusion_matrix[1,2]
+TN=confusion_matrix[1,1]
+FN=confusion_matrix[2,1]
+Accuracy=(TP+TN)/(TP+FP+TN+FN)
+Accuracy
+Precision = TP/(TP + FP)
+Precision
+Recall = TP/(TP + FN)
+Recall
+
 ```
+
+
 
 
 ## Logit Model with under sampling
 
-```{r data,results=T}
+```{r data_1,results=T}
 train_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\train_under.csv"))
 test_data=data.frame(read.csv("C:\\GitHub Repositories\\T9-Outlier-22FA\\Data Preprocessing\\test_under.csv"))
 train_data$Churn=as.factor(train_data$Churn)
@@ -55,22 +72,36 @@ str(test_data)
 
 ## Model building
 
-```{r logit,results=T}
+```{r logit_1,results=T}
 model=glm(Churn ~ ., train_data, family = "binomial")
 pred=predict(model,newdata=test_data,type="response")
-pred[pred >= 0.5]=1         
-pred[pred < 0.5 ]=0
-pred=as.factor(pred)
+#pred[pred >= 0.5]=1         
+#pred[pred < 0.5 ]=0
+#pred=as.factor(pred)
 summary(model)
 ```
 
+```{r logit_CM_2,results=T}
 
-## Confusion matrix
 
-```{r logit,results=T}
-confusion_mtx = confusionMatrix(pred,test_data$Churn,mode = "everything")
-print(confusion_mtx)
+confusion_matrix=table(test_data$Churn,pred>=0.5)
+xkabledply(confusion_matrix)
+TP=confusion_matrix[2,2]
+FP=confusion_matrix[1,2]
+TN=confusion_matrix[1,1]
+FN=confusion_matrix[2,1]
+Accuracy=(TP+TN)/(TP+FP+TN+FN)
+Accuracy
+Precision = TP/(TP + FP)
+Precision
+Recall = TP/(TP + FN)
+Recall
+
 ```
+
+
+
+
 
 
 
