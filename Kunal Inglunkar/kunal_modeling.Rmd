@@ -1,7 +1,7 @@
 ---
 # This is the YAML header/metadata for the document
 title: "Customer Churn Analysis code & Technical Analysis"
-author: "Pranav Chandaliya"
+author: "Kunal Inglunkar"
 
 output:
   html_document:
