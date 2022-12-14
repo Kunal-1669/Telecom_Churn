@@ -1,0 +1,1727 @@
+---
+# This is the YAML header/metadata for the document
+title: "Customer Churn Analysis code & Technical Analysis"
+author: "Pranav Chandaliya, Vaishnavi Nagarajaiah, Sunisha Harish, Kunal Inglunkar, Pooja Chandrashekara"
+
+output:
+  html_document:
+    code_folding: hide
+    number_sections: true
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=F}
+# The package "ezids" (EZ Intro to Data Science) includes a lot of the helper functions we developed for the course. 
+# Some of the frequently used functions are loadPkg(), xkabledply(), xkablesummary(), uzscale(), etc.
+# Once installed, load the library.
+library(ezids)
+
+```
+
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+# knitr::opts_chunk$set(include = F)
+# knitr::opts_chunk$set(echo = TRUE)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+```
+
+
+Loading our dataset into a dataframe.
+
+```{r,results="show"}
+Telecom_Data <- data.frame(read.csv("Telecom Data.csv"))
+ncol(Telecom_Data)
+nrow(Telecom_Data)
+```
+
+There are total 58 Columns and 51,047 Rows.
+
+Let us print the structure of our data.
+
+```{r,results=T}
+str(Telecom_Data)
+```
+
+Here we are converting a few columns to factor data type.
+
+```{r,results="show"}
+#Telecom_Data$Churn <- factor(Telecom_Data$Churn)
+Telecom_Data$CreditRating <- factor(Telecom_Data$CreditRating) 
+Telecom_Data$Occupation <- factor(Telecom_Data$Occupation)
+
+```
+
+Getting the summary of our data.
+```{r,results="show"}
+#xkablesummary(Telecom_Data)
+```
+
+Let's check for null values
+
+```{r,results="show"}
+library(dplyr)
+library(tidyr)
+## Checking the null values in the dataset
+#summary(Telecom_Data)
+#is.null(Telecom_Data)
+null_values<-sapply(Telecom_Data, function(x) sum(is.na(x)))
+null_values
+```
+
+Few columns have null values but the count is less,
+
+
+Lets create new variables which will help with our analysis.
+
+```{r, results= "show"}
+##Creation of new variables for our analysis
+Telecom_Data$perc_recurrent_charge <- (Telecom_Data$TotalRecurringCharge /Telecom_Data$MonthlyRevenue) * 100
+
+Telecom_Data$perc_overage_minute <- (Telecom_Data$OverageMinutes / Telecom_Data$MonthlyMinutes) * 100
+
+str(Telecom_Data)
+
+```
+
+Let us check the count for churn.
+
+```{r,results="show"}
+## Getting Churn counts 
+churn_counts<- dplyr::count(Telecom_Data,Churn , sort = TRUE)
+
+```
+
+We are plotting a bar chart here to see the churn distribution.
+
+```{r,results="show"}
+library("ggplot2")
+ggplot(data = churn_counts, aes(x = "", y = n, fill = Churn)) + 
+  geom_bar(stat = "identity") + 
+  coord_polar("y")
+
+
+```
+
+Trying out plotly for pie chart for more interactive graphs.
+
+```{r,results="show"}
+
+library(plotly)
+colors <- c('rgb(211,94,96)', 'rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+fig <- plot_ly(type='pie', labels=churn_counts$Churn, values=churn_counts$n, 
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = colors,
+                      line = list(color = '#FFFFFF', width = 1)))
+fig
+
+
+```
+
+Creating a subset for churned and retained customers for deep dive analysis and checking the summary of the divided data to analyze the trend.
+
+```{r,results="show"}
+
+library(dplyr)
+
+
+Telecom_Data_yes = filter(Telecom_Data, Churn == "Yes")
+
+Telecom_Data_no = filter(Telecom_Data, Churn == "No")
+
+summary(Telecom_Data_yes)
+
+
+summary(Telecom_Data_no)
+```
+
+
+Showing the classification of our data into major categories.
+
+```{r,results="show"}
+
+feat_typ_counts <- data.frame(read.csv("Feat_type_counts.csv"))
+#install.packages("plotrix")
+library(plotrix)
+
+library("ggplot2")
+#pie(feat_typ_counts$Counts, feat_typ_counts$Variable.Type)
+
+piepercent<- round(100 * feat_typ_counts$Counts / sum(feat_typ_counts$Counts), 1)
+
+
+feat_typ_counts$fraction <- feat_typ_counts$Counts / sum(feat_typ_counts$Counts)
+
+# Compute the cumulative percentages (top of each rectangle)
+feat_typ_counts$ymax <- cumsum(feat_typ_counts$fraction)
+
+# Compute the bottom of each rectangle
+feat_typ_counts$ymin <- c(0, head(feat_typ_counts$ymax, n=-1))
+
+# Compute label position
+feat_typ_counts$labelPosition <- (feat_typ_counts$ymax + feat_typ_counts$ymin) / 2
+
+# Compute a good label
+feat_typ_counts$label <- paste0(feat_typ_counts$Variable.Type, "\n Count: ", feat_typ_counts$Counts)
+
+
+ggplot(feat_typ_counts, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Variable.Type)) +
+  geom_rect() +
+  geom_label( x=3.5, aes(y=labelPosition, label=label), size=2) +
+  scale_fill_brewer(palette=4) +
+  coord_polar(theta="y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(legend.position = "none")
+
+
+
+
+
+
+```
+
+
+##Plotting a Box plot of Monthly Minutes
+
+```{r,results="show"}
+boxplot(Telecom_Data$MonthlyMinutes,
+main = "Monthly Minutes of Customers",
+xlab = "Monthly Min",
+ylab = "Frequency",
+col = "orange",
+border = "brown",
+horizontal = TRUE,
+notch = TRUE
+)
+```
+
+##Current Headset use in days
+
+```{r,results="show"}
+
+plot_ly(Telecom_Data, y= Telecom_Data$CurrentEquipmentDays, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+```
+
+
+##Boxplot of Total Recurring Charge
+
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$TotalRecurringCharge, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+##Box plot of Month in Service
+
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$MonthsInService, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+##Box plot of the Percent change in recurrent charge
+
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$perc_recurrent_charge, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+##Box plot of Percent change in Minutes
+
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$PercChangeMinutes, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+##Box plot of Percent change in Revenues
+
+```{r,results="show"}
+plot_ly(Telecom_Data, y= Telecom_Data$PercChangeRevenues, color = Telecom_Data$Churn, type = "box") %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+
+
+```
+
+
+
+##Distribution of the Montly Revenue
+
+```{r,results="show"}
+library(ggplot2)  
+library(plotly)
+
+set.seed(1)    
+
+gg <- ggplot(Telecom_Data,aes(x = MonthlyRevenue, color = 'density')) +  
+  geom_histogram(aes(y = ..density..), bins = 7,  fill = '#67B7D1', alpha = 0.5) +  
+  geom_density(color = '#67B7D1') +  
+  geom_rug(color = '#67B7D1') + 
+  ylab("") + 
+  xlab("")  + theme(legend.title=element_blank()) +
+  scale_color_manual(values = c('density' = '#67B7D1'))
+
+
+ggplotly(gg)%>% 
+  layout(plot_bgcolor='#e5ecf6',   
+             xaxis = list(   
+               title='Time', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff'),   
+             yaxis = list(   
+               title='Monthly Revenue', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff')) 
+
+```
+
+##Distribution of Monthly Minutes
+
+```{r,results="show"}
+library(ggplot2)  
+library(plotly)
+
+set.seed(1)    
+
+gg <- ggplot(Telecom_Data,aes(x = MonthlyMinutes, color = 'density')) +  
+  geom_histogram(aes(y = ..density..), bins = 7,  fill = '#67B7D1', alpha = 0.5) +  
+  geom_density(color = '#67B7D1') +  
+  geom_rug(color = '#67B7D1') + 
+  ylab("") + 
+  xlab("")  + theme(legend.title=element_blank()) +
+  scale_color_manual(values = c('density' = '#67B7D1'))
+
+
+ggplotly(gg)%>% 
+  layout(plot_bgcolor='#e5ecf6',   
+             xaxis = list(   
+               title='Monthly Minutes ', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff'),   
+             yaxis = list(   
+               title='Frequency', 
+               zerolinecolor = '#ffff',   
+               zerolinewidth = 2,   
+               gridcolor = 'ffff')) 
+
+
+
+
+```
+
+
+```{r,results="show"}
+qqnorm(Telecom_Data$MonthlyMinutes)                        # QQplot 
+
+
+qqline(Telecom_Data$MonthlyMinutes, col = "red") 
+#install.packages("car")
+#library("car")
+#qqPlot(Telecom_Data$MonthlyMinutes)
+
+```
+```{r,results="show"}
+library("plotly")
+#plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1, color = Telecom_Data$Churn, type = "box") 
+         #layout(boxmode = "group", 
+        # xaxis = list(title=''), 
+        # yaxis = list(title='Frequency'))
+
+
+```
+
+
+Checking how Non US travel affects the churn rate
+
+```{r,results="show"}
+churn_count<-nrow(Telecom_Data$Churn)
+ggplot(Telecom_Data,aes(x = NonUSTravel,fill=Churn )) +
+geom_bar( position = "stack")+ggtitle("How Travel affects churn")
+```
+
+Do the number of dropped call have affect on churn ?
+
+```{r}
+ggplot(Telecom_Data, aes(x=DroppedCalls, fill=Churn)) + geom_histogram(position='identity',alpha=0.6)
+```
+
+Income group of the customers
+
+```{r}
+ggplot(Telecom_Data,aes(x=IncomeGroup, fill=Churn))+geom_histogram(position='identity',alpha=0.6)
+```
+
+How many customer are opting out of mailing list
+
+```{r}
+ggplot(Telecom_Data,aes(x=OptOutMailings,fill=Churn))+geom_bar(position='identity',alpha=0.6)
+```
+
+Histogram for representing age of customers in Telecom Data
+
+```{r, echo=T, results=T}
+library(plotly)
+ggplot(Telecom_Data, aes(x=AgeHH1))+ geom_histogram(color="aquamarine4",fill = "aquamarine3",alpha=0.6, bins=30) + labs(x="Age of Customers", y="Frequency", 
+title="Histogram of Customer Age") +  theme_classic()
+```
+
+Filtering age of primary users 
+
+```{r, echo=T, results=T}
+library(dplyr)
+AgeFiltered = filter(Telecom_Data, AgeHH1== 0)
+nrow(AgeFiltered)
+(13917/nrow(Telecom_Data))*100
+```
+
+Boxplot representing customer age group in Telecom Data using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Telecom_Data, aes(y=AgeHH1)) + geom_boxplot( colour="maroon", fill="aquamarine3",alpha=0.6) + ggtitle("Boxplot of Customer Age group`") + labs(x="Age of Customers", y=" Frequency") +  theme_classic()
+```
+
+Boxplot representing Customer age group in Telecom Data using plotly
+
+```{r, echo=T, results=T}
+library(plotly)
+plot_ly(Telecom_Data, y= Telecom_Data$AgeHH1,type = "box", color = Telecom_Data$Churn) %>% 
+         layout(boxmode = "group", 
+         xaxis = list(title=''), 
+         yaxis = list(title='Frequency'))
+```
+
+## Does credit rating have an impact on churn rate?
+
+Boxplot for Credit Rating using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Telecom_Data, aes(y=CreditRating)) + geom_boxplot( colour="orange", fill="black") + ggtitle("Credit Rating  using `ggplot`")
+```
+
+Creating a subset for Churned and Retained customers data
+
+```{r, echo=T, results=T}
+Churned <- subset(Telecom_Data, Churn=="Yes")
+Retained <- subset(Telecom_Data, Churn=="No")
+
+```
+
+
+Frequency barplot for Credit Rating of Churned customers using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Churned, aes(x = CreditRating)) + geom_bar(col="black", fill="red", alpha=0.4) + ggtitle("Credit Rating for Churned Telecom Data") + labs(x="Credit Rating (x-axis)", y=" Count (y-axis)") + ylim(0,15000) + theme_classic()
+```
+
+Frequency barplot for Credit Rating of Retained customers using ggplot
+
+```{r, echo=T, results=T}
+library(ggplot2)
+ggplot(Retained, aes(x = CreditRating)) + geom_bar(col="black", fill="aquamarine3", alpha=0.6) + ggtitle("Credit Rating for Retained Telecom Data") +  labs(x="Credit Rating (x-axis)", y=" Count (y-axis)")+ ylim(0,15000) +  theme_classic()
+```
+
+## At what duration is the churn rate high for the customers?
+
+```{r Histogram,results=T}
+
+# Histogram for relationship between months in service and Churn
+ggplot(Churned, aes(x=MonthsInService, fill=Churn)) + geom_histogram(position='identity',alpha=0.6,color='aquamarine4',fill='aquamarine3')+xlab("Service period for churned customers (In Months) ")+ylab("Frequency") + theme_classic()+ggtitle("Service Months Distribution for Churned customers")
+
+Mean_MonthsInService=mean(Churned$MonthsInService)
+print(paste("Mean of service months of the customer:",Mean_MonthsInService))
+
+Median_MonthsInService=median(Churned$MonthsInService)
+print(paste("Median of service months of the customer:",Median_MonthsInService))
+```
+
+## In what Prizm codes are the Churn Rates high?
+
+```{r PrizmCode,results=T}
+
+# Barplot for Prizm Code effect on Churn
+ggplot(Telecom_Data, aes(x=PrizmCode, fill = Churn)) +geom_bar(position = "dodge2")+ggtitle("Churn distribution for Prizm code")
+
+#install.packages("plotly")
+library(plotly)
+colors <- c('rgb(128,133,133)', 'rgb(144,103,167)', 'rgb(171,104,87)', 'rgb(114,147,203)')
+
+
+fig <- plot_ly(type='pie', labels=Churned$PrizmCode, values=Churned$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = "Set1"),
+                      line = list(color = '#FFFFFF', width = 1))
+fig
+
+fig_1 <- plot_ly(type='pie', labels=Retained$PrizmCode, values=Retained$n,
+               textinfo='label+percent',
+               insidetextorientation='radial',marker = list(colors = "Set1"),
+                      line = list(color = '#FFFFFF', width = 1))
+fig_1
+
+```
+
+## Is occupation independent of churn ?
+
+```{r Occupation,results=T}
+
+#Frequency distribution of Occupation
+
+ggplot(Telecom_Data,aes(x=Occupation)) + geom_bar(fill = "aquamarine3") + ggtitle("Frequency distribution of occupation") 
+
+#Creating a contingency table for Occupation and Churn
+Occupation_Churn<-table(Telecom_Data$Occupation,Telecom_Data$Churn)
+str(Occupation_Churn)
+
+#Performing Chi Square Test to check if occupation is independent of churn
+
+chisq_test=chisq.test(Occupation_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+p value is greater than 0.05. Hence we will be accepting the null hypothesis, H0.
+Therefore we can say that occupation is independent of churn.
+
+## Does the monthly revenue average differ for different occupations?
+
+H0: Average monthly revenue is similar across different occupations
+
+H1: Average monthly revenue is different across different occupations
+
+```{r}
+
+
+## Anova Results 
+one.way <- aov(MonthlyMinutes ~ Occupation, data = Telecom_Data)
+#summary(one.way)
+xkabledply(one.way, title = "ANOVA result summary")
+
+```
+
+P values < 0.05, Which means null hypothesis is rejected 
+
+Monthly revenue average differ for occupations
+
+
+**Bivariate analysis of variables**
+
+```{r Bivariate-Analysis, echo=T, results=T}
+Telecom_Data <- read.csv("Telecom Data.csv")
+```
+Correlation Analysis of Monthly Revenue and Overage Minutes for churned customers. 
+```{r Correlation Analysis, echo=T, results=T}
+churndata <- subset(Telecom_Data, Telecom_Data$Churn == "Yes")
+sum(is.na(churndata$MonthlyRevenue))
+sum(is.na(churndata$OverageMinutes))
+
+```
+We can see there are 70 NA values in monthly revenue and overageminutes columns when churn is yes
+Lets remove those NA values
+
+
+```{r, echo=T, results=T}
+churndata2 <- na.omit(churndata)
+sum(is.na(churndata2$MonthlyRevenue))
+sum(is.na(churndata2$OverageMinutes))
+```
+
+
+We have removed all the null values.
+
+
+```{r,echo=T,results=T}
+cor.test(churndata2$MonthlyRevenue, churndata2$OverageMinutes, method='spearman')
+```
+
+
+The output is 0.5911 which is approximately 0.6. 
+As the sign is positive, we can say that monthly revenue and overage minutes vary postively when there is churn. That is, the as the overage minutes increases, monthly revenue also increases. 
+
+
+```{r, echo=T, results=T}
+#Plot with statistical results
+library(ggplot2)
+ggplot(data = churndata2) + 
+  geom_smooth(mapping = aes(x = OverageMinutes, y = MonthlyRevenue, color="Brown")) + theme_classic()+
+xlab("Overage minutes used by the customer") + ylab("Monthly revenue of the Telecom company ") 
+```
+From the graph we can see that as Overage Minutes increased, Monthly revenue also increased. 
+
+```{r, echo=T, results=T}
+#install.packages("ggpubr")
+library(ggpubr)
+ggscatter(data = churndata2, x = "OverageMinutes", y = "MonthlyRevenue",
+          conf.int = TRUE, color="brown", xlab="Overage Minutes used by customer", ylab="Monthly Revenue of the Telecom company", title="Scatter plot of Overage Minutes vs Monthly Revenue for churned customers")
+```
+The scatter graph in the aforementioned section illustrates the positive correlation between customer overage minutes consumed and the telecom sector's monthly income for customers who churn.
+
+Now lets plot when there is no churn, that is when there is retention of customers. 
+
+```{r, echo=T, results=T}
+retentiondata <- subset(Telecom_Data, Telecom_Data$Churn == "No")
+sum(is.na(retentiondata$MonthlyRevenue))
+sum(is.na(retentiondata$OverageMinutes))
+
+```
+
+We can see there are 86 NA values in monthly revenue and overageminutes columns when there is no churn.
+Lets remove those NA values
+
+```{r, echo=T, results=T}
+retentiondata2 <- na.omit(retentiondata)
+sum(is.na(retentiondata2$MonthlyRevenue))
+sum(is.na(retentiondata2$OverageMinutes))
+```
+
+
+We have removed all the null values.
+Now lets do correlation
+
+
+```{r, echo=T, results=T}
+cor.test(retentiondata2$MonthlyRevenue, retentiondata2$OverageMinutes, method='spearman')
+```
+
+Even when there is retention the output is 0.56, we can say the that Monthly revenue varies postively as overage minutes varies. 
+
+
+```{r, echo=T, results=T}
+
+#Plot with statistical results
+
+library(ggplot2)
+ggplot(data = retentiondata2)+
+  geom_smooth(mapping = aes(x = OverageMinutes, y = MonthlyRevenue), color="dark green" ) + theme_classic() + xlab("Overage minutes used by the customer") + ylab("Monthly revenue of the Telecom company ")
+```
+
+
+From the graph we can see that as Overage Minutes increases, Monthly revenue also increases. 
+
+
+```{r, echo=T, results=T}
+#install.packages("ggpubr")
+library(ggpubr)
+ggscatter(data = retentiondata2, x = "OverageMinutes", y = "MonthlyRevenue",
+          conf.int = TRUE, color="dark green", xlab="Overage Minutes used by customer", ylab="Monthly Revenue of the Telecom company", title="Scatter plot of Overage Minutes vs Monthly Revenue for retention customers")
+```
+
+The graph shows that even for customers who are still with the company, monthly revenue rises as Overage Minutes rise.
+Also, we can observe that outliers are more for churned customers compared to non-churn customers
+
+
+```{r, echo=T, results=T}
+datacorr <- Telecom_Data[ , c("MonthlyRevenue","MonthlyMinutes", "TotalRecurringCharge","CustomerCareCalls","ThreewayCalls","ReceivedCalls","OutboundCalls","MonthsInService","HandsetPrice","CreditRating")]   
+sum(is.na(datacorr))
+```
+There are 468 NA values in the subsetted dataset.
+
+```{r, echo=T, results=T}
+datacorr2 <- na.omit(datacorr)
+nrow(datacorr2)
+sum(is.na(datacorr2))
+```
+
+After removing the NA values, we are left out with 50891 rows.
+
+
+Next, we have used few numerical factors, including months of service, outbound calls, received calls, three-way calls, customer care calls, total recurring calls, and monthly minutes, and we've conducted correlation statistical studies to look at how they relate to one another using correlation matrix. 
+
+
+
+```{r, echo=T, results=T}
+# load package
+#install.packages("ggstatsplot")
+#install.packages("ggcorrplot")
+
+library(ggstatsplot)
+library(ggcorrplot)
+library(corrplot)
+
+# correlogram
+ggstatsplot::ggcorrmat(
+data = datacorr2,
+type = "nonparametric", # parametric for Pearson, nonparametric for Spearman's correlation
+colors = c("darkred", "white", "steelblue"), 
+title = "Correlation matrix"
+)
+
+```
+
+The above correlation graph leads us to the following conclusions:
+
+1. Monthly minutes consumed by the client and monthly revenue of the telecom operator are highly associated.
+2. There is a significant probability that customers will receive calls from customer service.
+3. The number of months a consumer stays with a service won't significantly alter its monthly revenue.
+4. The customer service calls made by the telecom sector have no impact on the number of months the clients have left on their subscriptions.
+
+## Data Preprocessing for Modeling 
+
+In the EDA, We observed Incorrect entries in agehh1 and agehh2 which had zero values that need to be imputed, We observed the distribution of it and decided to go with median imputation as age has skewness.
+
+```{r, echo=T, results=T}
+
+library(ggplot2)
+ggplot(Telecom_Data, aes(x = AgeHH1)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
+
+
+ggplot(Telecom_Data, aes(x = AgeHH2)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
+
+Telecom_Data$AgeHH1<-replace(Telecom_Data$AgeHH1,Telecom_Data$AgeHH1 <1 ,NA)
+Telecom_Data$AgeHH2<-replace(Telecom_Data$AgeHH2,Telecom_Data$AgeHH2 <1 ,NA)
+Telecom_Data$AgeHH1[is.na(Telecom_Data$AgeHH1)]<- median(Telecom_Data$AgeHH1,na.rm = TRUE)
+
+Telecom_Data$AgeHH2[is.na(Telecom_Data$AgeHH2)]<- median(Telecom_Data$AgeHH2,na.rm = TRUE)
+
+library(ggplot2)
+ggplot(Telecom_Data, aes(x = AgeHH1)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
+
+ggplot(Telecom_Data, aes(x = AgeHH2)) + 
+  geom_histogram(aes(y = ..density..),
+                 colour = 1, fill = "cyan")
+
+
+```
+
+## checking inactive customers and removing them
+
+```{r, echo=T, results=T}
+
+library(plotly)
+
+
+fig <- plot_ly(y = Telecom_Data$MonthlyMinutes, type = "box", quartilemethod="linear") # or "inclusive", or "linear" by default
+
+fig
+
+## checking inactive customers 
+nrow(subset(Telecom_Data, MonthlyRevenue <= 0))
+
+
+
+## checking inactive customers 
+nrow(subset(Telecom_Data, MonthlyMinutes <= 0))
+
+
+
+
+## Removing inactive customers (outliers)
+
+Telecom_Data<-subset(Telecom_Data, MonthlyRevenue >  0)
+
+Telecom_Data <-subset(Telecom_Data, MonthlyMinutes > 0)
+
+library(plotly)
+fig <- plot_ly(y = Telecom_Data$MonthlyMinutes, type = "box", quartilemethod="exclusive") # or "inclusive", or "linear" by default
+
+fig
+
+nrow(Telecom_Data)
+
+```
+
+## Checking Null Values :
+
+```{r, echo=T, results=T}
+
+library(tidyverse)
+map(Telecom_Data, ~sum(is.na(.)))
+```
+### Feature selection 
+
+#### Using Chi square test to select categorical variables 
+
+#Creating a contingency table for IncomeGroup and Churn
+
+```{r,results=T}
+IncomeGroup_Churn<-table(Telecom_Data$IncomeGroup,Telecom_Data$Churn)
+str(IncomeGroup_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(IncomeGroup_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for Service Area and Churn
+
+```{r,results=T}
+Service_Area_Churn<-table(Telecom_Data$ServiceArea,Telecom_Data$Churn)
+str(Service_Area_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(Service_Area_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for ChildrenInHH and Churn
+
+```{r,results=T}
+ChildrenInHH_Churn<-table(Telecom_Data$ChildrenInHH,Telecom_Data$Churn)
+str(ChildrenInHH_Churn)
+```
+
+```{r,results=T}
+chisq_test=chisq.test(ChildrenInHH_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for HandsetWebCapable and Churn
+
+```{r ,results=T}
+HandsetWebCapable_Churn<-table(Telecom_Data$HandsetWebCapable,Telecom_Data$Churn)
+str(HandsetWebCapable_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(HandsetWebCapable_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for TruckOwner and Churn
+
+```{r ,results=T}
+TruckOwner_Churn<-table(Telecom_Data$TruckOwner,Telecom_Data$Churn)
+str(TruckOwner_Churn)
+```
+
+```{r,results=T}
+chisq_test=chisq.test(TruckOwner_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for RVOwner and Churn
+
+```{r ,results=T}
+RVOwner_Churn<-table(Telecom_Data$RVOwner,Telecom_Data$Churn)
+str(RVOwner_Churn)
+```
+
+```{r RVOwner,results=T}
+chisq_test=chisq.test(RVOwner_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for Homeownership and Churn
+
+```{r ,results=T}
+Homeownership_Churn<-table(Telecom_Data$Homeownership,Telecom_Data$Churn)
+str(Homeownership_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(Homeownership_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for BuysViaMailOrder and Churn
+
+```{r ,results=T}
+BuysViaMailOrder_Churn<-table(Telecom_Data$BuysViaMailOrder,Telecom_Data$Churn)
+str(BuysViaMailOrder_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(BuysViaMailOrder_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for RespondsToMailOffers and Churn
+
+```{r ,results=T}
+RespondsToMailOffers_Churn<-table(Telecom_Data$RespondsToMailOffers,Telecom_Data$Churn)
+str(RespondsToMailOffers_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(RespondsToMailOffers_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for OptOutMailings and Churn
+
+```{r ,results=T}
+OptOutMailings_Churn<-table(Telecom_Data$OptOutMailings,Telecom_Data$Churn)
+str(OptOutMailings_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(OptOutMailings_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for NonUSTravel and Churn
+
+```{r ,results=T}
+NonUSTravel_Churn<-table(Telecom_Data$NonUSTravel,Telecom_Data$Churn)
+str(NonUSTravel_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(NonUSTravel_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for OwnsComputer and Churn
+
+```{r ,results=T}
+OwnsComputer_Churn<-table(Telecom_Data$OwnsComputer,Telecom_Data$Churn)
+str(OwnsComputer_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(OwnsComputer_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for HasCreditCard and Churn
+
+```{r ,results=T}
+HasCreditCard_Churn<-table(Telecom_Data$HasCreditCard,Telecom_Data$Churn)
+str(HasCreditCard_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(HasCreditCard_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Creating a contingency table for NewCellphoneUser and Churn
+
+```{r ,results=T}
+NewCellphoneUser_Churn<-table(Telecom_Data$NewCellphoneUser,Telecom_Data$Churn)
+str(HasCreditCard_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(NewCellphoneUser_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for NotNewCellphoneUser and Churn
+
+```{r ,results=T}
+NotNewCellphoneUser_Churn<-table(Telecom_Data$NotNewCellphoneUser,Telecom_Data$Churn)
+str(NotNewCellphoneUser_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(NotNewCellphoneUser_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for OwnsMotorcycle and Churn
+
+```{r ,results=T}
+OwnsMotorcycle_Churn<-table(Telecom_Data$OwnsMotorcycle,Telecom_Data$Churn)
+str(OwnsMotorcycle_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(OwnsMotorcycle_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for HandsetPrice and Churn
+
+```{r ,results=T}
+HandsetPrice_Churn<-table(Telecom_Data$HandsetPrice,Telecom_Data$Churn)
+str(HandsetPrice_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(HandsetPrice_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+
+#Creating a contingency table for MadeCallToRetentionTeam  and Churn
+
+```{r  ,results=T}
+MadeCallToRetentionTeam_Churn<-table(Telecom_Data$MadeCallToRetentionTeam,Telecom_Data$Churn)
+str(MadeCallToRetentionTeam_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(MadeCallToRetentionTeam_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+
+
+#Creating a contingency table for CreditRating  and Churn
+
+```{r  ,results=T}
+CreditRating_Churn<-table(Telecom_Data$CreditRating,Telecom_Data$Churn)
+str(CreditRating_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(CreditRating_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+
+#Creating a contingency table for PrizmCode  and Churn
+
+```{r  ,results=T}
+PrizmCode_Churn<-table(Telecom_Data$PrizmCode,Telecom_Data$Churn)
+str(PrizmCode_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(PrizmCode_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for Occupation  and Churn
+
+```{r  ,results=T}
+Occupation_Churn<-table(Telecom_Data$Occupation,Telecom_Data$Churn)
+str(Occupation_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(Occupation_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+
+#Creating a contingency table for MaritalStatus  and Churn
+
+```{r  ,results=T}
+MaritalStatus_Churn<-table(Telecom_Data$MaritalStatus,Telecom_Data$Churn)
+str(MaritalStatus_Churn)
+```
+
+```{r ,results=T}
+chisq_test=chisq.test(MaritalStatus_Churn)
+chisq_test
+p_value=chisq_test$p.value
+print(paste("The p value is:",p_value))
+```
+
+#Rejected variables for which the p value is greater than 0.05
+Service_Area
+HandsetWebCapable
+Marital Status
+Occupation
+Credit Rating
+MadeCallToRetentionTeam 
+HandsetPrice
+OwnsMotorcycle
+NotNewCellphoneUser
+NewCellphoneUser
+OwnsComputer
+NonUSTravel
+OptOutMailings
+RespondsToMailOffers
+BuysViaMailOrder
+RVOwner
+TruckOwner
+HandsetWebCapable
+
+#Selected variables for which the p value is lesser than 0.05
+IncomeGroup  The p value is: 0.000208431035771752
+ChildrenInHH  The p value is: 0.0316348562178264
+Homeownership The p value is: 0.00303998368986854
+PrizmCode The p value is: 0.000261117207513819
+
+
+```{r ANOVA,results=T}
+monthly_min_ANOVA=aov(MonthlyMinutes ~ Churn, data=Telecom_Data)
+xkabledply(monthly_min_ANOVA)
+
+monthly_rev_ANOVA=aov(MonthlyRevenue ~ Churn, data=Telecom_Data)
+xkabledply(monthly_rev_ANOVA)
+
+totalrec_charge_ANOVA=aov(TotalRecurringCharge ~ Churn, data=Telecom_Data)
+xkabledply(totalrec_charge_ANOVA)
+
+director_assisted_ANOVA=aov(DirectorAssistedCalls ~ Churn, data=Telecom_Data)
+xkabledply(director_assisted_ANOVA)
+
+overage_min_ANOVA=aov(OverageMinutes ~ Churn, data=Telecom_Data)
+xkabledply(overage_min_ANOVA)
+
+roaming_calls_ANOVA=aov(RoamingCalls ~ Churn, data=Telecom_Data)
+xkabledply(roaming_calls_ANOVA)
+
+dropped_calls_ANOVA=aov(DroppedCalls ~ Churn, data=Telecom_Data)
+xkabledply(dropped_calls_ANOVA)
+
+blocked_calls_ANOVA=aov(BlockedCalls ~ Churn, data=Telecom_Data)
+xkabledply(blocked_calls_ANOVA)
+
+unanswered_calls_ANOVA=aov(UnansweredCalls  ~ Churn, data=Telecom_Data)
+xkabledply(unanswered_calls_ANOVA)
+
+cuscare_calls_ANOVA=aov(CustomerCareCalls  ~ Churn, data=Telecom_Data)
+xkabledply(cuscare_calls_ANOVA)
+
+monthsinservice_ANOVA=aov(MonthsInService  ~ Churn, data=Telecom_Data)
+xkabledply(monthsinservice_ANOVA)
+
+unique_subs_ANOVA=aov(UniqueSubs ~ Churn, data=Telecom_Data)
+xkabledply(unique_subs_ANOVA)
+
+Active_Subs_ANOVA=aov(ActiveSubs ~ Churn, data=Telecom_Data)
+xkabledply(Active_Subs_ANOVA)
+
+current_eqp_ANOVA=aov(CurrentEquipmentDays ~ Churn, data=Telecom_Data)
+xkabledply(current_eqp_ANOVA)
+
+AgeHH1_ANOVA=aov(AgeHH1 ~ Churn, data=Telecom_Data)
+xkabledply(AgeHH1_ANOVA)
+
+AgeHH2_ANOVA=aov(AgeHH2 ~ Churn, data=Telecom_Data)
+xkabledply(AgeHH2_ANOVA)
+
+#blocked_calls_ANOVA=aov(BlockedCalls ~ Churn, data=Telecom_Data)
+#xkabledply(blocked_calls_ANOVA)
+
+#blocked_calls_ANOVA=aov(BlockedCalls ~ Churn, data=Telecom_Data)
+#xkabledply(blocked_calls_ANOVA)
+
+#blocked_calls_ANOVA=aov(BlockedCalls ~ Churn, data=Telecom_Data)
+#xkabledply(blocked_calls_ANOVA)
+
+
+
+
+
+
+```
+
+
+## Removing Features which have chi square value more than 0.05 and anova for numerical features 
+```{r,results="show"}
+
+
+
+
+select_feats = c("IncomeGroup","ChildrenInHH","Homeownership","PrizmCode","MonthlyMinutes", "MonthlyRevenue","TotalRecurringCharge","DirectorAssistedCalls","OverageMinutes","RoamingCalls","DroppedCalls","UnansweredCalls","CustomerCareCalls","MonthsInService","UniqueSubs","ActiveSubs","CurrentEquipmentDays","AgeHH1","AgeHH2","Churn")
+
+
+Telecom_Data_rm <- subset(Telecom_Data, select =select_feats)
+
+
+
+
+
+```
+
+```{r,results="show"}
+# Install the required package
+#install.packages("fastDummies")
+cat_cols <-c("IncomeGroup","ChildrenInHH","Homeownership","PrizmCode")
+
+# Load the library
+library(fastDummies)
+prepro_data<-dummy_cols(Telecom_Data_rm,select_columns=cat_cols,remove_first_dummy = TRUE,remove_selected_columns=TRUE)  
+
+
+prepro_data$Churn<-replace(prepro_data$Churn, prepro_data$Churn == "No", 0)
+prepro_data$Churn<-replace(prepro_data$Churn, prepro_data$Churn == "Yes", 1)
+
+## Converting factor to numeric 
+prepro_data$Churn<-as.numeric(prepro_data$Churn)
+
+
+
+```
+
+
+## Undersampling for imbalance dataset
+
+```{r,results="show"}
+
+#library(caret)
+table(prepro_data$Churn)
+
+
+churn_0 <- subset(prepro_data, prepro_data$Churn==0)
+churn_1 <- subset(prepro_data, prepro_data$Churn==1)
+
+nrow(churn_0)
+nrow(churn_1)
+
+set.seed(704)
+
+churn_0_sampled = churn_0[ sample(nrow(churn_0),14197), ]
+
+nrow(churn_0_sampled)
+nrow(churn_1)
+
+under_sampl= union(churn_0_sampled,churn_1)
+
+library(caTools)
+
+
+#make this example reproducible
+set.seed(1)
+
+#Use 80% of dataset as training set and remaining 20% as testing set
+sample_under <- sample.split(under_sampl$Churn, SplitRatio = 0.8)
+train_under  <- subset(under_sampl, sample_under == TRUE)
+test_under   <- subset(under_sampl, sample_under == FALSE)
+
+#view dimensions of training set
+dim(train_under)
+dim(test_under)
+
+table(train_under$Churn)
+table(test_under$Churn)
+
+```
+
+## Predictive Modeling on Undersampled data
+
+## Random Forest 
+
+```{r,results="show"}
+# Loading package
+library(caTools)
+library(randomForest)
+library(caret)
+
+train_under$Churn = factor(train_under$Churn,
+						levels = c(0, 1))
+
+test_under$Churn = factor(test_under$Churn,
+						levels = c(0, 1))
+
+x_train<-subset(train_under, select = -c(Churn))
+y_train<-train_under$Churn
+
+x_test <- subset(test_under, select = -c(Churn))
+y_test <-test_under$Churn
+
+#y_train<-factor(y_train)
+#y_test<-factor(y_test)
+
+
+classifier_RF = randomForest(x = x_train,
+                             y = y_train,
+                             ntree = 500)
+  
+
+  
+# Predicting the Test set results
+y_pred = predict(classifier_RF, newdata = x_test)
+  
+# Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,y_test,mode = "everything",positive = "1")
+print(confusion_mtx)
+#confusion_mtx = table(y_test, y_pred)
+#confusion_mtx
+  
+# Plotting model
+plot(classifier_RF)
+  
+# Importance plot
+importance(classifier_RF)
+  
+# Variable importance plot
+varImpPlot(classifier_RF)
+
+
+```
+
+```{r logit,results=T}
+model=glm(Churn ~ ., train_under, family = "binomial")
+pred=predict(model,newdata=test_under,type="response")
+pred[pred >= 0.5]=1         
+pred[pred < 0.5 ]=0
+pred=as.factor(pred)
+summary(model)
+
+# Confusion Matrix
+confusion_mtx = confusionMatrix(pred,test_under$Churn,mode = "everything",positive = "1")
+print(confusion_mtx)
+
+```
+### KNN
+
+```{r,results="show"}
+library("class")
+
+chooseK = function(k, train_set, val_set, train_class, val_class){
+  
+  # Build knn with k neighbors considered.
+  set.seed(1)
+  class_knn = knn(train = train_set,    #<- training set cases
+                  test = val_set,       #<- test set cases
+                  cl = train_class,     #<- category for classification
+                  k = k) #,                #<- number of neighbors considered
+                  # use.all = TRUE)       #<- control ties between class assignments. If true, all distances equal to the k-th largest are included
+  
+  tab = table(class_knn, val_class)
+  
+  # Calculate the accuracy.
+  accu = sum(tab[row(tab) == col(tab)]) / sum(tab)                         
+  cbind(k = k, accuracy = accu)
+}
+
+knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
+                         function(x) chooseK(x, train_set = x_train,val_set = x_test,train_class =y_train,val_class = y_test))
+```
+
+```{r,results="show"}
+
+str(knn_different_k)
+knn_different_k = data.frame(k = knn_different_k[1,],
+                             accuracy = knn_different_k[2,])
+
+
+loadPkg("ggplot2")
+ggplot(knn_different_k,
+       aes(x = k, y = accuracy)) +
+  geom_line(color = "orange", size = 1.5) +
+  geom_point(size = 3) + 
+  labs(title = "accuracy vs k")
+```
+
+
+```{r,results="show"}
+
+cl = train_under[,1]
+classifier_knn2 <- knn(train = train_under,
+                      test = test_under,
+                      cl = train_under$Churn,
+                      k = 17,prob=TRUE)
+
+confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_under$Churn),mode = "everything",positive = "1")
+print(confusion_mtx)
+
+```
+##Naive Bayes 
+
+```{r,results="show"}
+library(naivebayes)
+
+model_nb <- naive_bayes(Churn ~ ., data = train_under) 
+summary(model_nb)
+pred=predict(model_nb,newdata=x_test,type="class")
+
+summary(model)
+
+# Confusion Matrix
+confusion_mtx = confusionMatrix(pred,test_under$Churn,mode = "everything",positive = "1")
+print(confusion_mtx)
+
+
+```
+## Decision Tree
+```{r,results="show"}
+
+library(tree)
+classifier = tree(formula = Churn ~ .,
+				data = train_under)
+
+# Predicting the Test set results
+y_pred = predict(classifier,
+				newdata = test_under,
+				type = 'class')
+
+# Making the Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,test_under$Churn,mode = "everything",positive = "1")
+
+print(confusion_mtx)
+
+```
+
+
+Lets Try out SMOTE Technique, and lets compare the results 
+
+
+```{r, results='markup'}
+
+
+
+
+
+library(smotefamily)
+x<-subset(prepro_data, select = -c(Churn))
+y<-prepro_data$Churn
+#smote = SMOTE(x,y)
+#x<-as.numeric(x)
+#y<-as.numeric(y)
+smote = SMOTE(x, y,6)
+smote_complete = smote$data
+str(smote_complete)
+
+
+#write.csv(smote_complete, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\smote_complete.csv", row.names=FALSE)
+
+#write.csv(test, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test.csv", row.names=FALSE)
+#Use 80% of dataset as training set and remaining 20% as testing set
+sample <- sample.split(smote_complete$class, SplitRatio = 0.8)
+train_smote<- subset(smote_complete, sample == TRUE)
+test_smote   <- subset(smote_complete, sample == FALSE)
+
+```
+
+## Random Forest 
+
+```{r,results="show"}
+# Loading package
+library(caTools)
+library(randomForest)
+library(caret)
+
+train_smote$class = factor(train_smote$class,
+						levels = c(0, 1))
+
+test_smote$class = factor(test_smote$class,
+						levels = c(0, 1))
+
+x_train<-subset(train_smote, select = -c(class))
+y_train<-train_smote$class
+
+x_test <- subset(test_smote, select = -c(class))
+y_test <-test_smote$class
+
+#y_train<-factor(y_train)
+#y_test<-factor(y_test)
+
+
+classifier_RF = randomForest(x = x_train,
+                             y = y_train,
+                             ntree = 500)
+  
+
+  
+# Predicting the Test set results
+y_pred = predict(classifier_RF, newdata = x_test)
+  
+# Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,y_test,mode = "everything",positive = "1")
+print(confusion_mtx)
+#confusion_mtx = table(y_test, y_pred)
+#confusion_mtx
+  
+# Plotting model
+plot(classifier_RF)
+  
+# Importance plot
+importance(classifier_RF)
+  
+# Variable importance plot
+varImpPlot(classifier_RF)
+print(confusion_mtx)
+
+
+```
+
+```{r ,results=T}
+model=glm(class ~ ., train_smote, family = "binomial")
+pred=predict(model,newdata=test_smote,type="response")
+pred[pred >= 0.5]=1         
+pred[pred < 0.5 ]=0
+pred=as.factor(pred)
+summary(model)
+
+# Confusion Matrix
+confusion_mtx = confusionMatrix(pred,test_smote$class,mode = "everything",positive = "1")
+print(confusion_mtx)
+
+```
+### KNN
+
+```{r,results="show"}
+library("class")
+
+chooseK = function(k, train_set, val_set, train_class, val_class){
+  
+  # Build knn with k neighbors considered.
+  set.seed(1)
+  class_knn = knn(train = train_set,    #<- training set cases
+                  test = val_set,       #<- test set cases
+                  cl = train_class,     #<- category for classification
+                  k = k) #,                #<- number of neighbors considered
+                  # use.all = TRUE)       #<- control ties between class assignments. If true, all distances equal to the k-th largest are included
+  
+  tab = table(class_knn, val_class)
+  
+  # Calculate the accuracy.
+  accu = sum(tab[row(tab) == col(tab)]) / sum(tab)                         
+  cbind(k = k, accuracy = accu)
+}
+
+knn_different_k = sapply(seq(1, 21, by = 2),  #<- set k to be odd number from 1 to 21
+                         function(x) chooseK(x, train_set = x_train,val_set = x_test,train_class =y_train,val_class = y_test))
+```
+
+```{r,results="show"}
+
+str(knn_different_k)
+knn_different_k = data.frame(k = knn_different_k[1,],
+                             accuracy = knn_different_k[2,])
+
+
+loadPkg("ggplot2")
+ggplot(knn_different_k,
+       aes(x = k, y = accuracy)) +
+  geom_line(color = "orange", size = 1.5) +
+  geom_point(size = 3) + 
+  labs(title = "accuracy vs k")
+```
+
+
+```{r,results="show"}
+
+cl = train_smote[,1]
+classifier_knn2 <- knn(train = train_smote,
+                      test = test_smote,
+                      cl = train_smote$class,
+                      k = 3,prob=TRUE)
+
+confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_smote$class),mode = "everything",positive = "1")
+print(confusion_mtx)
+
+```
+##Naive Bayes 
+
+```{r,results="show"}
+library(naivebayes)
+
+model_nb <- naive_bayes(class ~ ., data = train_smote) 
+summary(model_nb)
+pred=predict(model_nb,newdata=x_test,type="class")
+
+summary(model)
+
+# Confusion Matrix
+confusion_mtx = confusionMatrix(pred,test_smote$class,mode = "everything",positive = "1")
+print(confusion_mtx)
+
+
+```
+## Decision Tree
+```{r,results="show"}
+
+library(tree)
+classifier = tree(formula = class ~ .,
+				data = train_smote)
+
+# Predicting the Test set results
+y_pred = predict(classifier,
+				newdata = test_smote,
+				type = 'class')
+
+# Making the Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,test_smote$class,mode = "everything",positive = "1")
+
+print(confusion_mtx)
+
+```
+
+### Trying different threshold values to improve recall/sensitivity
+
+
+```{r,results="show"}
+
+
+thresh <- c(0.3, 0.35 ,0.4 ,0.45, 0.5, 0.55, 0.60,0.65)
+
+table(y_test)
+y_pred = predict(classifier_RF, newdata = x_test,type ="prob")
+y_prob =y_pred[,2]
+
+y_test=as.numeric(y_test)
+y_test[y_test == 1] <-  "No"             
+y_test[y_test == 2] <-   "Yes"
+  
+y_test <- as.factor(y_test)
+
+
+for (x in thresh) {
+  print("Threshold")
+  print(x)
+  y_pred = predict(classifier_RF, newdata = x_test,type ="prob")
+  y_prob =y_pred[,2]
+
+  y_prob[y_prob >= x] <-  "Yes"             
+  y_prob[y_prob < x] <-   "No"
+  
+  
+  
+  
+  y_prob <- as.factor(y_prob)
+  confusion_mtx = confusionMatrix(y_prob,y_test,mode = "everything",positive="Yes")
+  print(confusion_mtx)
+  
+
+  
+  
+}
+
+
+
+```
+``````{r,results="show"}
+thresh <- c(0.3, 0.35,0.40,0.45)
+Accuracy <- c(0.67,0.72,0.76,0.77)
+Recall <- c(0.85,0.75,0.66,0.58)
+
+metrics <- data.frame(thresh, Accuracy,Recall)
+
+library(plotly)
+t <- list(
+  family = "sans serif",
+  size = 14,
+  color = toRGB("grey50"))
+
+
+fig <- plot_ly(metrics, x = ~Accuracy, y = ~Recall, text = ~thresh)
+fig <- fig %>% add_markers()
+fig <- fig %>% add_text(textfont = t, textposition = "top right")
+
+
+fig
+
+
+```
+
+## Model interpretability 
+
+
+```{r,results="show"}
+
+i_scores <- varImp(classifier_RF, conditional=TRUE)
+#Gathering rownames in 'var'  and converting it to the factor
+#to provide 'fill' parameter for the bar chart. 
+i_scores <- i_scores %>% tibble::rownames_to_column("var") 
+i_scores$var<- i_scores$var %>% as.factor()
+
+plot_ly(
+  data = i_scores,
+  x = ~var,
+  y = ~Overall,
+  type = "bar"
+) %>% 
+layout(xaxis = list(categoryorder = "total descending"))
+
+```
+
+
+Let's check high risky customers which have high probablity of churning 
+```{r,results="show"}
+
+
+y_pred = predict(classifier_RF, newdata = x_test,type ="prob")
+y_prob=y_pred[,2]
+
+print("Probablity of churning greater than 0.80")
+print("High Risky customers count")
+print(length(y_prob[y_prob >= 0.80]))
+
+print(" Probablity of Churning between 0.60 to 0.80")
+print("moderate Risky customers count")
+
+print(length(y_prob[y_prob >= 0.60]) - length(y_prob[y_prob >= 0.80]))
+
+
+
+```
