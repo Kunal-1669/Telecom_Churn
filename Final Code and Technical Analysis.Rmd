@@ -1384,7 +1384,7 @@ ggplot(knn_different_k,
 
 
 ```{r,results="show"}
-
+#Selecting K value as 17 because it gave more accuracy comapred to any other value
 cl = train_under[,1]
 classifier_knn2 <- knn(train = train_under,
                       test = test_under,
