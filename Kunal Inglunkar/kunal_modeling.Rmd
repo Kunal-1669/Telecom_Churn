@@ -185,15 +185,8 @@ Telecom_Data_rm$CreditRating<-replace(Telecom_Data_rm$CreditRating, Telecom_Data
 
 Telecom_Data_rm$CreditRating <- as.numeric(Telecom_Data_rm$CreditRating )
 
-#Telecom_Data_rm["Churn"][Telecom_Data_rm["Churn"] == "No" ] <- 0
-#Telecom_Data_rm["Churn"][Telecom_Data_rm["Churn"] == "Yes" ] <- 1
-#Telecom_Data_rm$Churn =as.numeric(Telecom_Data_rm$Churn )
-
 unique(Telecom_Data_rm$CreditRating )
 
-
-#sum(Telecom_Data_rm$CreditRating)
-#sum(Telecom_Data_rm$Churn)
 ```
 
 ```{r,results="show"}
@@ -221,12 +214,7 @@ plot(classifier_knn)
 plot_predict<-data.frame(test_cl$MonthlyRevenue,test_cl$MonthlyMinutes,test_cl$MonthsInService,
                          test_cl$IncomeGroup,test_cl$AgeHH1,test_cl$AgeHH2,test_cl$PercChangeMinutes,test_cl$CreditRating,predicted=classifier_knn)
 colnames(plot_predict)<-c("MonthlyRevenue","MonthlyMinutes","MonthsInService","IncomeGroup","AgeHH1","AgeHH2","PercChangeMinutes","CreditRating")
-#p1 <- ggplot(plot_predictions, aes(Petal.Length, Petal.Width, color = predicted, fill = predicted)) + 
- # geom_point(size = 5) + 
-  #geom_text(aes(label=data_test_labels),hjust=1, vjust=2) +
-  #ggtitle("Predicted relationship between Petal Length and Width") +
-  #theme(plot.title = element_text(hjust = 0.5)) +
-  #theme(legend.position = "none")
+
 ggplot(plot_predict,aes(MonthlyMinutes,IncomeGroup,color=classifier_knn,fill=classifier_knn))+geom_point(size=5)
 ```
 ```{r}
@@ -336,27 +324,11 @@ classifier_knn2 <- knn(train = train_data,
 ```
 
 ```{r}
-#library(ROCR)
-#prob <- attr(classifier_knn2, "prob")
-#prob <- 2*ifelse(classifier_knn2 == "-1", 1-prob, prob) - 1
-#pred_knn <- prediction(prob, train_data$class)
-#pred_knn <- performance(pred_knn, "tpr", "fpr")
-#plot(pred_knn, avg= "threshold", colorize=T, lwd=3, main="Voilà, a ROC curve!")
+
 pprob <- attr(classifier_knn2,"prob")
 
 prob <- 2*ifelse(classifier_knn2 == "-1", prob,1-prob)- 1
-#pred_knn <- prediction(prob, train_data)[,2]
-#performance_knn <- performance(pred_knn, "tpr", "fpr")# AUC
-#auc_knn <- performance(pred_knn,"auc")
-#auc_knn
-#pred_knn<- prediction(prob, train_data)
-#str(prob)
 
-#Traindata$predict.score <- predict(m1, Traindata)
-#> pred <- prediction(Traindata$predict.score, Traindata$Subscribe) 
-#> perf <- performance(pred, "tpr", "fpr")
-#> plot(perf)
-#> 
 train_data$prediction<-predict(classifier_knn,train_data)[,2]
 pred <- prediction(train_data$prediction, train_data$class) 
 perf <- performance(pred, "tpr", "fpr")
@@ -367,16 +339,7 @@ class(train_data$class)[1]
 ```
 
 ```{r}
-#prediction <- predict(model, df_test, type="response")
- 
-# create roc curve
-#roc_object <- roc( df_test$z, prediction)
- 
-# calculate area under curve
 
-#prediction <- predict(classifier_knn2, test_data, type="response")
-#roc_object <- roc( test_data$Churn, prediction)
-#auc( roc_object )
 library(pROC)
 roc_full_resolution <- roc(classifier_knn2,as.numeric(test_data$Churn))
 plot.roc(roc_full_resolution, col="red", lwd=3, main="ROC curve fdi")
@@ -387,6 +350,7 @@ auc(roc_full_resolution)
 ```{r}
 plot(classifier_knn2)
 ```
+
 ```{r}
 #Variables with less p value
 
@@ -419,7 +383,7 @@ knn_different_k = data.frame(k = knn_different_k[1,],
                              accuracy = knn_different_k[2,])
 
 # Plot accuracy vs. k.
-# install.packages("ggplot2")
+
 loadPkg("ggplot2")
 
 ggplot(knn_different_k,
@@ -445,11 +409,6 @@ train_label<-train_data["class"]
 str(test_label)
 str(train_label)
 ```
-
-
-
-
-
 
 ```{r}
 kNN_res = table(classifier_knn2,
