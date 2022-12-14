@@ -1,0 +1,50 @@
+``` {r, results=T}
+datatel <- read.csv("Telecom Data.csv")
+head(datatel)
+```
+
+Does a high number of active subscribers lead to a low monthly revenue?
+```{r, results=T}
+actsubdata <- subset.data.frame(datatel, datatel$ActiveSubs >1)
+print(actsubdata)
+sum(is.na(actsubdata$ActiveSubs))
+```
+No null values
+```{r, results=T}
+minsub <- 0
+nosub <- 0
+manysub <- 0
+
+for (i in actsubdata$ActiveSubs){
+  if (i< 1){
+    nosub=nosub+1
+  }else if (i == 1){
+    minsub=minsub+1
+  }else if (i > 1) {
+    manysub=manysub+1
+  }
+  i=i+1
+}
+
+print(nosub)
+print(manysub)
+print(minsub)
+```
+
+
+correlation between 2 variables
+```{r, results=T}
+cor.test(actsubdata$MonthlyRevenue, actsubdata$ActiveSubs, method='spearman')
+```
+The output is -0.025. 
+Negative sign indicates that monthly revenue and active subscribers vary in the opposite direction. The output is also bit closer to 0. This means there is only slight change in Monthly Revenue of telecom company as the active subscribers vary. 
+
+
+```{r, results=T}
+
+#Plot with statistical results
+
+library(ggplot2)
+ggplot(data = actsubdata) + 
+  geom_smooth(mapping = aes(x = ActiveSubs, y = MonthlyRevenue))
+```
