@@ -1277,63 +1277,16 @@ table(test_under$Churn)
 
 ## Predictive Modeling on Undersampled data
 
-## Random Forest 
+
+##Naive Bayes 
 
 ```{r,results="show"}
-# Loading package
-library(caTools)
-library(randomForest)
-library(caret)
+library(naivebayes)
 
-train_under$Churn = factor(train_under$Churn,
-						levels = c(0, 1))
+model_nb <- naive_bayes(Churn ~ ., data = train_under) 
+summary(model_nb)
+pred=predict(model_nb,newdata=x_test,type="class")
 
-test_under$Churn = factor(test_under$Churn,
-						levels = c(0, 1))
-
-x_train<-subset(train_under, select = -c(Churn))
-y_train<-train_under$Churn
-
-x_test <- subset(test_under, select = -c(Churn))
-y_test <-test_under$Churn
-
-#y_train<-factor(y_train)
-#y_test<-factor(y_test)
-
-
-classifier_RF = randomForest(x = x_train,
-                             y = y_train,
-                             ntree = 500)
-  
-
-  
-# Predicting the Test set results
-y_pred = predict(classifier_RF, newdata = x_test)
-  
-# Confusion Matrix
-confusion_mtx = confusionMatrix(y_pred,y_test,mode = "everything",positive = "1")
-print(confusion_mtx)
-#confusion_mtx = table(y_test, y_pred)
-#confusion_mtx
-  
-# Plotting model
-plot(classifier_RF)
-  
-# Importance plot
-importance(classifier_RF)
-  
-# Variable importance plot
-varImpPlot(classifier_RF)
-
-
-```
-
-```{r logit,results=T}
-model=glm(Churn ~ ., train_under, family = "binomial")
-pred=predict(model,newdata=test_under,type="response")
-pred[pred >= 0.5]=1         
-pred[pred < 0.5 ]=0
-pred=as.factor(pred)
 summary(model)
 
 # Confusion Matrix
@@ -1341,6 +1294,7 @@ confusion_mtx = confusionMatrix(pred,test_under$Churn,mode = "everything",positi
 print(confusion_mtx)
 
 ```
+
 ### KNN
 
 ```{r,results="show"}
@@ -1395,24 +1349,25 @@ confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_under$Churn),mode
 print(confusion_mtx)
 
 ```
-##Naive Bayes 
 
-```{r,results="show"}
-library(naivebayes)
+#Logistic Regression
 
-model_nb <- naive_bayes(Churn ~ ., data = train_under) 
-summary(model_nb)
-pred=predict(model_nb,newdata=x_test,type="class")
-
+```{r logit,results=T}
+model=glm(Churn ~ ., train_under, family = "binomial")
+pred=predict(model,newdata=test_under,type="response")
+pred[pred >= 0.5]=1         
+pred[pred < 0.5 ]=0
+pred=as.factor(pred)
 summary(model)
 
 # Confusion Matrix
 confusion_mtx = confusionMatrix(pred,test_under$Churn,mode = "everything",positive = "1")
 print(confusion_mtx)
 
-
 ```
+
 ## Decision Tree
+
 ```{r,results="show"}
 
 library(tree)
@@ -1431,37 +1386,6 @@ print(confusion_mtx)
 
 ```
 
-
-Lets Try out SMOTE Technique, and lets compare the results 
-
-
-```{r, results='markup'}
-
-
-
-
-
-library(smotefamily)
-x<-subset(prepro_data, select = -c(Churn))
-y<-prepro_data$Churn
-#smote = SMOTE(x,y)
-#x<-as.numeric(x)
-#y<-as.numeric(y)
-smote = SMOTE(x, y,6)
-smote_complete = smote$data
-str(smote_complete)
-
-
-#write.csv(smote_complete, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\smote_complete.csv", row.names=FALSE)
-
-#write.csv(test, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test.csv", row.names=FALSE)
-#Use 80% of dataset as training set and remaining 20% as testing set
-sample <- sample.split(smote_complete$class, SplitRatio = 0.8)
-train_smote<- subset(smote_complete, sample == TRUE)
-test_smote   <- subset(smote_complete, sample == FALSE)
-
-```
-
 ## Random Forest 
 
 ```{r,results="show"}
@@ -1470,17 +1394,17 @@ library(caTools)
 library(randomForest)
 library(caret)
 
-train_smote$class = factor(train_smote$class,
+train_under$Churn = factor(train_under$Churn,
 						levels = c(0, 1))
 
-test_smote$class = factor(test_smote$class,
+test_under$Churn = factor(test_under$Churn,
 						levels = c(0, 1))
 
-x_train<-subset(train_smote, select = -c(class))
-y_train<-train_smote$class
+x_train<-subset(train_under, select = -c(Churn))
+y_train<-train_under$Churn
 
-x_test <- subset(test_smote, select = -c(class))
-y_test <-test_smote$class
+x_test <- subset(test_under, select = -c(Churn))
+y_test <-test_under$Churn
 
 #y_train<-factor(y_train)
 #y_test<-factor(y_test)
@@ -1509,10 +1433,55 @@ importance(classifier_RF)
   
 # Variable importance plot
 varImpPlot(classifier_RF)
+
+
+```
+
+
+## Predictive Modeling on SMOTE data
+
+```{r, results='markup'}
+
+library(smotefamily)
+x<-subset(prepro_data, select = -c(Churn))
+y<-prepro_data$Churn
+#smote = SMOTE(x,y)
+#x<-as.numeric(x)
+#y<-as.numeric(y)
+smote = SMOTE(x, y,6)
+smote_complete = smote$data
+str(smote_complete)
+
+
+#write.csv(smote_complete, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\smote_complete.csv", row.names=FALSE)
+
+#write.csv(test, "D:\\ID_Project\\T9-Outlier-22FA\\Data Preprocessing\\test.csv", row.names=FALSE)
+#Use 80% of dataset as training set and remaining 20% as testing set
+sample <- sample.split(smote_complete$class, SplitRatio = 0.8)
+train_smote<- subset(smote_complete, sample == TRUE)
+test_smote   <- subset(smote_complete, sample == FALSE)
+
+```
+
+##Naive Bayes 
+
+```{r,results="show"}
+library(naivebayes)
+
+model_nb <- naive_bayes(class ~ ., data = train_smote) 
+summary(model_nb)
+pred=predict(model_nb,newdata=x_test,type="class")
+
+summary(model)
+
+# Confusion Matrix
+confusion_mtx = confusionMatrix(pred,test_smote$class,mode = "everything",positive = "1")
 print(confusion_mtx)
 
 
 ```
+
+#Logistic Regression
 
 ```{r ,results=T}
 model=glm(class ~ ., train_smote, family = "binomial")
@@ -1527,6 +1496,26 @@ confusion_mtx = confusionMatrix(pred,test_smote$class,mode = "everything",positi
 print(confusion_mtx)
 
 ```
+
+## Decision Tree
+```{r,results="show"}
+
+library(tree)
+classifier = tree(formula = class ~ .,
+				data = train_smote)
+
+# Predicting the Test set results
+y_pred = predict(classifier,
+				newdata = test_smote,
+				type = 'class')
+
+# Making the Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,test_smote$class,mode = "everything",positive = "1")
+
+print(confusion_mtx)
+
+```
+
 ### KNN
 
 ```{r,results="show"}
@@ -1581,39 +1570,56 @@ confusion_mtx = confusionMatrix(classifier_knn2,as.factor(test_smote$class),mode
 print(confusion_mtx)
 
 ```
-##Naive Bayes 
+
+## Random Forest 
 
 ```{r,results="show"}
-library(naivebayes)
+# Loading package
+library(caTools)
+library(randomForest)
+library(caret)
 
-model_nb <- naive_bayes(class ~ ., data = train_smote) 
-summary(model_nb)
-pred=predict(model_nb,newdata=x_test,type="class")
+train_smote$class = factor(train_smote$class,
+						levels = c(0, 1))
 
-summary(model)
+test_smote$class = factor(test_smote$class,
+						levels = c(0, 1))
 
-# Confusion Matrix
-confusion_mtx = confusionMatrix(pred,test_smote$class,mode = "everything",positive = "1")
-print(confusion_mtx)
+x_train<-subset(train_smote, select = -c(class))
+y_train<-train_smote$class
+
+x_test <- subset(test_smote, select = -c(class))
+y_test <-test_smote$class
+
+#y_train<-factor(y_train)
+#y_test<-factor(y_test)
 
 
-```
-## Decision Tree
-```{r,results="show"}
+classifier_RF = randomForest(x = x_train,
+                             y = y_train,
+                             ntree = 500)
+  
 
-library(tree)
-classifier = tree(formula = class ~ .,
-				data = train_smote)
-
+  
 # Predicting the Test set results
-y_pred = predict(classifier,
-				newdata = test_smote,
-				type = 'class')
-
-# Making the Confusion Matrix
-confusion_mtx = confusionMatrix(y_pred,test_smote$class,mode = "everything",positive = "1")
-
+y_pred = predict(classifier_RF, newdata = x_test)
+  
+# Confusion Matrix
+confusion_mtx = confusionMatrix(y_pred,y_test,mode = "everything",positive = "1")
 print(confusion_mtx)
+#confusion_mtx = table(y_test, y_pred)
+#confusion_mtx
+  
+# Plotting model
+plot(classifier_RF)
+  
+# Importance plot
+importance(classifier_RF)
+  
+# Variable importance plot
+varImpPlot(classifier_RF)
+print(confusion_mtx)
+
 
 ```
 
