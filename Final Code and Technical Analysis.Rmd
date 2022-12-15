@@ -1355,12 +1355,13 @@ print(confusion_mtx)
 ```{r logit,results=T}
 model=glm(Churn ~ ., train_under, family = "binomial")
 pred=predict(model,newdata=test_under,type="response")
-pred[pred >= 0.5]=1         
-pred[pred < 0.5 ]=0
-pred=as.factor(pred)
+#pred[pred >= 0.5]=1         
+#pred[pred < 0.5 ]=0
+#pred=as.factor(pred)
 summary(model)
-
 # Confusion Matrix
+library(caret)
+
 confusion_mtx = confusionMatrix(pred,test_under$Churn,mode = "everything",positive = "1")
 print(confusion_mtx)
 
